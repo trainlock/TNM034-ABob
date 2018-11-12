@@ -7,7 +7,6 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 %% Segmentation
-
 % Invertera from white to black
 % Threshold to binary image
 % Function returns the a rotated version of the original image (double) 
@@ -26,8 +25,7 @@ function strout = tnm034(im)
 % Search for "interesting" parts in the image. 
 % Apply Sobel-filter to find gradient and the change in the image. 
 % Make objects easier to find using opening
-% Opening with discs help find note heads, opening with horisontal
-% lemenents help find stems
+% Opening with discs help find 
 
 % When separate objects are found, make sure that they are in a correct
 % order where they are read horisontally, according to lines. 
@@ -49,7 +47,6 @@ function strout = tnm034(im)
 % a hole exists. 
 
 %% Pitch
-
 % See if object is interesting and then find the pitch for it. 
 % Add pitch to strout. Write from left to right (line). 
 % fourth = A, eigth = a
