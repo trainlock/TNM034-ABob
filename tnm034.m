@@ -12,6 +12,11 @@ function strout = tnm034(im)
 % Threshold to binary image
 % Function returns the a rotated version of the original image (double) 
 % and a rotated binary image. 
+% Make binary and invert (0->1, 1->0)
+level = graythresh(im);
+BW = im2bw(im, level);
+BW = imcomplement(BW);
+
 
 % Find lines and these save positions
 
