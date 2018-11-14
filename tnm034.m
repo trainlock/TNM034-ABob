@@ -6,6 +6,12 @@ function strout = tnm034(im)
 % strout: The resulting character string of the detected 
 % notes. The string must follow a pre-defined format. 
 
+format compact
+filename = './Images_Training/im1s.jpg';
+im = imread(filename);
+
+
+
 %% Segmentation
 
 % Invertera from white to black
@@ -14,13 +20,21 @@ function strout = tnm034(im)
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 level = graythresh(im);
-BW = im2bw(im, level);
-BW = imcomplement(BW);
+BW = 1-im2bw(im, level);
+%BW = imcomplement(BW);
 
 
 % Find lines and these save positions
+rotBW = imrotate(BW, 0.47);
+sumBW = sum(rotBW, 2);
+thresh = 0.4;
+threshBW = sumBW > max(sumBW)*thresh;
+threshBW = double(threshBW);figure
+plot(threshBW)
+% [pks, locs] = findpeaks(threshBW); // Returns only 14 of 15 lines
 
-% Remove lines
+% TODO: Remove lines from image with threshBW >= 1
+
 
 % Remove "false" objects, noise
 % Fix damaged objects. Use opening/closing depending on the damage type
@@ -34,6 +48,7 @@ BW = imcomplement(BW);
 % Opening with discs help find note heads, opening with horisontal
 % lemenents help find stems
 
+
 % When separate objects are found, make sure that they are in a correct
 % order where they are read horisontally, according to lines. 
 
@@ -42,11 +57,14 @@ BW = imcomplement(BW);
 
 % Template matching with normxcorr2(TEMPLATE, A)
 
+
 % Local vertical/horisontal projection to find flags (or not)
 % Local vertical projection to find bars
 
+
 % bwlabel for classification, new bwconncomp instead of bwlabel
 % Labeling sets so that each object have its unique label
+
 
 % Regionprops, centroid and eulernumber
 % Centroid returns center of mass of the region
@@ -58,6 +76,8 @@ BW = imcomplement(BW);
 % See if object is interesting and then find the pitch for it. 
 % Add pitch to strout. Write from left to right (line). 
 % fourth = A, eigth = a
+
+strout = 'hej';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
