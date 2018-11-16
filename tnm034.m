@@ -7,7 +7,7 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im3s.jpg';
+filename = './Images_Training/im1s.jpg';
 im = imread(filename);
 
 
@@ -19,30 +19,16 @@ im = imread(filename);
 % Function returns the a rotated version of the original image (double) 
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
-% Call invertAndRotate();
-% level = graythresh(im);
-% BW = 1-im2bw(im, level);
 [BW, im2] = invertAndRotate(im);
 
 % Find lines and these save row indices
-lineIndices = findLines(BW);
+lineIndices = findLineIndices(BW);
+
 % Remove lines
-BWnl = BW;
-BWnl(lineIndices,:) = 0;
-figure
-imshow(BW);
+BWnl = removeLines(lineIndices, BW);
 
 % Fix holes from removing lines
-%openBW = imopen(BWnl, strel('disk', 3)); % Gives blobs
-closedBW = imclose(BWnl, strel('rectangle', [5 1]));
-closedBW = imopen(closedBW, strel('disk', 3)) + closedBW;
-%closedBW = imclose(closedBW, strel('sphere', 4)) + closedBW;
-figure;
-imshow(closedBW);
-
-% [pks, locs] = findpeaks(threshBW); // Returns only 14 of 15 lines
-
-% TODO: Remove lines from image with threshBW >= 1
+fixBrokenObjects(BWnl);
 
 
 % Remove "false" objects, noise
