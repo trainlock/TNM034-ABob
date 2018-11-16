@@ -21,7 +21,10 @@ theta_peak = theta(peaks(2));
 % Do a second - more detailed - Hough transform around the max angle
 % to find the value
 theta_range = theta_peak-2 : 0.01 : theta_peak+2;
-theta_range = min(max(theta_range,-90),90); % clamp the range
+
+% Remove unvalid theta values (that hough transform cannot handle)
+theta_range = theta_range(theta_range < 90);
+theta_range = theta_range(theta_range >= -90);
 
 [H, theta, rho] = hough(BW, 'Theta', theta_range);
 peaks = houghpeaks(H); 
