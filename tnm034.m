@@ -24,17 +24,20 @@ im = imread(filename);
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
 
+%crete subimages containing one row
+%for all rows
 % Remove lines
 BWnl = removeLines(lineIndices, BW);
 
 % Fix holes from removing lines
-fixBrokenObjects(BWnl);
-
-
-% Remove "false" objects, noise
 % Fix damaged objects. Use opening/closing depending on the damage type
 % Opening removes lines, closing removes holes and creates bridges
-% Save as separate objects
+fixBrokenObjects(BWnl);
+
+% Remove "false" objects, noise
+% this can by done by reconstructing the notes
+
+% Separate objects
 
 
 % Search for "interesting" parts in the image. 
