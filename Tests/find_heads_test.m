@@ -1,6 +1,5 @@
 % Read image
-clear;
-filename = '././Images_Training/im1s.jpg';
+filename = '././Images_Training/im10s.jpg';
 im = imread(filename);
 imshow(im)
 
@@ -10,9 +9,11 @@ imshow(im)
 SE = strel('disk',4); % Structuring element
 J = imopen(im_BW,SE);
 
+% Find the centroids (center positions of the heads)
 L = bwlabel(J);
 s = regionprops(L,'centroid');
 centroids = cat(1, s.Centroid);
+
 imshow(im_BW)
 hold on
 plot(centroids(:,1),centroids(:,2), 'b*')
