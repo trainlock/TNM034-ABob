@@ -9,7 +9,7 @@ function strout = tnm034(im)
 format compact
 filename = './Images_Training/im1s.jpg';
 im = imread(filename);
-
+im = rgb2gray(im);
 
 
 %% Segmentation
