@@ -26,6 +26,8 @@ lineIndices = findLineIndices(BW);
 
 %crete subimages containing one row
 %for all rows
+% TODO: call function 
+
 % Remove lines
 BWnl = removeLines(lineIndices, BW);
 
