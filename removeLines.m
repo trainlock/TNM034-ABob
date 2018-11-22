@@ -1,28 +1,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function imWithoutLines = removeLines(lineIndices, BW)
-%REMOVELINES Remove lines at indices in image
-%   lineIndices: Index of staff lines in image
+function imWithoutLines = removeLines(BW)
+%REMOVELINES Remove lines using morphological operations
 %   BW: Binary image
 %
-%   imWithoutLines: Binary image where the rows corresponding to
-%   lineIndices have been removed
+%   imWithoutLines: Binary image without the lines
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-% 
-% sobelFilter1 = [-1 -2 -1; 0 0 0; 1 2 1];
-% sobelFilter2 = [1 2 1; 0 0 0; -1 -2 -1];
-% %filteredIm = imfilter(im(lineIndices,:), sobelFilter);
-% filteredIm1 = imfilter(im, sobelFilter1);
-% filteredIm2 = imfilter(im, sobelFilter2);
-% filteredIm = abs(filteredIm1+filteredIm2);
-% figure
-% imshow(filteredIm)
 
-% Check morphological gradient
-% Difference between dilation and erosion
+% Remove all kinds of lines, leaves only noteheades and the thicker lines
+BWnoLines = bwmorph(BW, 'open');
+BWnoLines = bwareaopen(BWnoLines, 30);
 
-BWnl = BW;
-% Set lines to black, aka remove lines
-BWnl(lineIndices,:) = 0;
+% Remove everything but vertical objects/lines
+BWverticalLines = imopen(BW, strel('rectangle', [15 1]));
+
+% Add to binary images into one complete binary image withouth any lines
+BWnl = BWnoLines+BWverticalLines;
 
 imWithoutLines = BWnl;
 end
