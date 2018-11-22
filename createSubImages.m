@@ -12,11 +12,13 @@ subImages = im;
 if(nrGroups > 0)
     padding = 3* ceil(lineIndices(3) - lineIndices(1));  % dist from center line to top line
     
-    row = lineIndices(3);
+    rowCounter = 3;
     subImages = uint8(zeros(padding*2+1, size(im,2), nrGroups));
     for i = 1:nrGroups 
         % cut out and save one group, with padding
+        row = lineIndices(rowCounter);
         subImages(:, :, i) = im(row - padding : row + padding, :);
+        rowCounter = rowCounter + 5 ;
     end 
 end
 
