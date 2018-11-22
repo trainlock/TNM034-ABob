@@ -1,18 +1,28 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function lineIndices = findLineIndices(BW)
-%FINDLINES Find horisontal lines
-%  BW: input rotated image
-%
-%  lineIndices: Indices of horisontal lines in the image
-%%%%%%%%%%%%%%%%%%%%%%%%%% 
+function [lineIndices] = findLineIndices(BW)
+%Return info about the rows containing staff lines
+% BW: binary input image 
+% lineIndices: one row index per line
 
-% Find lines and these save positions
+%%
+% Horizontal projection
 sumBW = sum(BW, 2);
-dilateBW = imdilate(sumBW, strel('cube', 3));
-thresh = 0.3;
-threshBW = dilateBW > max(dilateBW)*thresh;
-threshBW = double(threshBW);
 
-lineIndices = find(threshBW);
+% get one row per line in image (save as new variable)
+[peaks,locs] = findpeaks(sumBW);
+
+% Threshold for peak to be considered a line
+k = 0.4;   
+thresh = max(sumBW(locs))*k; 
+
+linePeaks = sumBW(locs) > thresh;
+lineIndices = locs(linePeaks);
+
+%Plot of found lines
+% figure
+% plot(sumBW)
+% hold on
+% plot(lineIndices, thresh, '*r')
+
 end
 
