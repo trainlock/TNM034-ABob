@@ -7,12 +7,14 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im1s.jpg';
+filename = './Images_Training/im10s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
+%% Preprocessing I: Fix camera images to scanned quality
 
-%% Segmentation
+%% Preprocessing II: Clean preprocessed image
+% Rotate image, find and remove lines and clip image to subimages
 
 % Invertera from white to black
 % Threshold to binary image
@@ -24,21 +26,28 @@ im = rgb2gray(im);
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
 
-%crete subimages containing one row
-%for all rows
-% TODO: call function 
+% Create subimages containing one row each
+subIms = createSubImages(im2, lineIndices);
 
-% Remove lines
-BWnl = removeLines(lineIndices, BW);
+% Compute level to use for thresholding
+level = graythresh(subIms); 
 
-% Fix holes from removing lines
-% Fix damaged objects. Use opening/closing depending on the damage type
-% Opening removes lines, closing removes holes and creates bridges
-fixBrokenObjects(BWnl);
+% Create subimages without lines (binary)
+BW_subIms = false(size(subIms));
+for i = 1:size(subIms,3)
+    % binarize subimage
+    BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
+    % Remove lines
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i));
+end
 
-% Remove "false" objects, noise
-% this can by done by reconstructing the notes
+% Put all sub images in one image and compute new line indices
+subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
+BW_aligned = im2bw(subIms_aligned, level);
+% TODO: compute indices
 
+
+%% Segmentation
 % Separate objects
 
 
