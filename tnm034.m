@@ -7,7 +7,7 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im10s.jpg';
+filename = './Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
@@ -32,6 +32,11 @@ subIms = createSubImages(im2, lineIndices);
 % Compute level to use for thresholding
 level = graythresh(subIms); 
 
+% Put all sub images in one image and compute new line indices
+subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
+BW_aligned = im2bw(subIms_aligned, level);
+lineIndices = findLineIndices(BW_aligned);
+
 % Create subimages without lines (binary)
 BW_subIms = false(size(subIms));
 for i = 1:size(subIms,3)
@@ -40,11 +45,6 @@ for i = 1:size(subIms,3)
     % Remove lines
     BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i));
 end
-
-% Put all sub images in one image and compute new line indices
-subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
-BW_aligned = im2bw(subIms_aligned, level);
-% TODO: compute indices
 
 
 %% Segmentation
