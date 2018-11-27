@@ -47,8 +47,27 @@ for i = 1:size(subIms,3)
 end
 
 
-%% Segmentation
-% Separate objects
+%% Segmentation 
+
+for subIm = 1:size(BW_subIms,3)
+    
+    % SEGMENTATION
+    
+    % find separate objects and stats
+    CC = bwconncomp(BW_subIms(:,:,subIm));
+    STATS = regionprops(CC, 'Area', 'BoundingBox', 'Centroid', 'Orientation');
+    
+    % Get matrices for different stats
+    areas = cat(1,STATS.Area);
+    boundingboxes = cat(1, STATS.BoundingBox);
+
+    % Filter on area to remove small objects
+    % OBS! Broken objects will be removed
+    [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes);
+    
+
+end % TODO: extend loop to include classification and writing pitch
+
 
 
 % Search for "interesting" parts in the image. 
@@ -56,7 +75,6 @@ end
 % Make objects easier to find using opening
 % Opening with discs help find note heads, opening with horisontal
 % lemenents help find stems
-
 
 % When separate objects are found, make sure that they are in a correct
 % order where they are read horisontally, according to lines. 
