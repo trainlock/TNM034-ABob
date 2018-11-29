@@ -9,6 +9,7 @@ function [lineIndices] = findLineIndices(BW)
 sumBW = sum(BW, 2);
 
 % get one row per line in image (save as new variable)
+% OBS! Smooth data to avoid double peaks
 [peaks,locs] = findpeaks(sumBW);
 
 % Threshold for peak to be considered a line
@@ -18,16 +19,16 @@ thresh = max(sumBW(locs))*k;
 linePeaks = sumBW(locs) > thresh;
 lineIndices = locs(linePeaks);
 
-% Test if nr indices is divisible by 5, else show an error
-if(rem(length(lineIndices), 5) ~= 0)
-    error("Number of found lines not divisible by 5.");
-end
-
 %Plot of found lines
 % figure
 % plot(sumBW)
 % hold on
 % plot(lineIndices, thresh, '*r')
+
+% Test if nr indices is divisible by 5, else show an error
+if(rem(length(lineIndices), 5) ~= 0)
+    error("Number of found lines not divisible by 5.");
+end
 
 end
 
