@@ -39,7 +39,7 @@ else
     rot_angle = 90 + theta_peak;
 end
 
-im2 = imrotate(im, rot_angle, 'bicubic', 'crop'); 
+im2 = imrotate(im, rot_angle, 'bicubic', 'loose'); % loose => keep all information in the image
 
 % Result
 level = graythresh(im2);
