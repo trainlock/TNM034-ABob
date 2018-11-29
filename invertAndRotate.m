@@ -20,7 +20,7 @@ theta_peak = theta(peaks(2));
 
 % Do a second - more detailed - Hough transform around the max angle
 % to find the value
-theta_range = theta_peak-2 : 0.01 : theta_peak+2;
+theta_range = theta_peak-2 : 0.001 : theta_peak+2;
 
 % Remove unvalid theta values (that hough transform cannot handle)
 theta_range = theta_range(theta_range < 90);
@@ -39,7 +39,7 @@ else
     rot_angle = 90 + theta_peak;
 end
 
-im2 = imrotate(im, rot_angle, 'bicubic'); 
+im2 = imrotate(im, rot_angle, 'bicubic', 'crop'); 
 
 % Result
 level = graythresh(im2);
