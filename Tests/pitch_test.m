@@ -2,6 +2,7 @@ format compact
 filename = './Images_Training/im3s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
+im = imresize(im,2); % scale image (bicubic interpolation by default)
 
 % Rotate image, find and remove lines and clip image to subimages
 
@@ -35,6 +36,13 @@ for i = 1:size(subIms,3)
     BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i));
 end
 
+% TEST: draw line positions
+im_test = subIms(:,:,1);
+RGB = cat(3,im_test,im_test,im_test);
+RGB(lineIndices, :, 1) = 255;
+figure
+imshow(RGB);
+
 %% For each sub-image: identify note head and its pitch
 
 centerLine = lineIndices(3);
@@ -48,13 +56,12 @@ positions = int8(centerLine+9*pitchDist: -pitchDist : centerLine-10*pitchDist);
 % between lines differently...
 
 % TEST: draw line positions
-% im_test = subIms(:,:,1);
-% RGB = cat(3,im_test,im_test,im_test);
-% RGB(positions(2:2:end), :, 1) = 255;
-% figure
-% imshow(RGB);
+im_test = subIms(:,:,1);
+RGB = cat(3,im_test,im_test,im_test);
+RGB(positions(2:2:end), :, 1) = 255;
+figure
+imshow(RGB);
 
-%%
 
 res = ''; % empty string for result
 for i = 1:size(BW_subIms,3)
@@ -73,11 +80,14 @@ for i = 1:size(BW_subIms,3)
     heads = cat(1, s.Centroid);
     
     % TEST: Show the centroids
-%     figure
-%     imshow(currentIm)
-%     hold on
-%     plot(heads(:,1),heads(:,2), 'b*')
-%     hold off
+    RGB = cat(3,subIms(:,:,i),subIms(:,:,i),subIms(:,:,i));
+    RGB(positions(2:2:end), :, 1) = 255;
+    figure
+    imshow(RGB);
+    %imshow(currentIm)
+    hold on
+    plot(heads(:,1),heads(:,2), 'b*')
+    hold off
     
     % For each centroid, encode the pitch
     for j = 1:length(heads)
