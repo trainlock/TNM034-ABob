@@ -34,6 +34,8 @@ for i = 1:size(subIms,3)
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
     BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i));
+    figure
+    imshow(BW_subIms(:,:,i))
 end
 
 % TEST: draw line positions
@@ -68,26 +70,19 @@ for i = 1:size(BW_subIms,3)
     
     currentIm = BW_subIms(:,:,i);
     
-    % first remove the thick beams using opening
-    IM = imopen(currentIm,strel('rectangle',[4,10]));
-    IM = currentIm-IM;
-    % Opening with ciruclar (disk) structuring element to get heads
-    IM = imopen(IM,strel('disk',4));
+    heads = findNoteHeads(currentIm);
     
-    % Find the note head positions (centroids of objects in IM)
-    L = bwlabel(IM);
-    s = regionprops(L,'centroid');
-    heads = cat(1, s.Centroid);
-    
-    % TEST: Show the centroids
-    RGB = cat(3,subIms(:,:,i),subIms(:,:,i),subIms(:,:,i));
-    RGB(positions(2:2:end), :, 1) = 255;
-    figure
-    imshow(RGB);
-    %imshow(currentIm)
-    hold on
-    plot(heads(:,1),heads(:,2), 'b*')
-    hold off
+    if(length(heads) > 1)
+        % TEST: Show the centroids
+        RGB = cat(3,subIms(:,:,i),subIms(:,:,i),subIms(:,:,i));
+        RGB(positions(2:2:end), :, 1) = 255;
+        figure
+        %imshow(RGB);
+        imshow(currentIm)
+        hold on
+        plot(heads(:,1),heads(:,2), 'b*')
+        hold off
+    end
     
     % For each centroid, encode the pitch
     for j = 1:length(heads)
