@@ -26,9 +26,6 @@ im = rgb2gray(im);
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
 
-% Compute distances n (line width) and d (line distance)
-[d, n] = computeStaffMetrics(BW);
-
 % Create subimages containing one row each
 subIms = createSubImages(im2, lineIndices);
 
@@ -46,7 +43,7 @@ for i = 1:size(subIms,3)
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i));
 end
 
 
