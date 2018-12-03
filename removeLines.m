@@ -1,25 +1,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function imWithoutLines = removeLines(BW, d)
+function imWithoutLines = removeLines(BW)
 %REMOVELINES Remove lines using morphological operations
 %   BW: Binary image
-%   d:  Distance between two lines, hiven as interval d = [dMin, dMax]
 %
 %   imWithoutLines: Binary image without the lines
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-% Average distance between lines (avg height of note head)
-d_avg = (d(2)+d(1))/2; 
+% Remove all kinds of lines, leaves only noteheades and the thicker lines
+BWnoHorisontalLines = bwmorph(BW, 'open');
+BWnoHorisontalLines = bwareaopen(BWnoHorisontalLines, 30);
+
+% Remove everything but vertical objects/lines
+BWverticalLines = imopen(BW, strel('rectangle', [15 1]));
+
+% Find flags on notes
+BWflags = imopen(BW, strel('line', 4, 90));
 
 % Add to binary images into one complete binary image withouth any lines
-BWnl = imopen(BW, strel('line', floor(d_avg/3), 90));
-
-% Try to fix accidentally broken objects a bit. 
-BWnl = bwmorph(BWnl, 'close', 2);
-
-% Remove all objects that has a smaller area 
-BWnl = bwareaopen(BWnl, floor(3.14*(d_avg/2)*(d_avg/2)));
+BWnl = BWnoHorisontalLines+BWverticalLines+BWflags;
 
 imWithoutLines = BWnl;
-
 end
 
