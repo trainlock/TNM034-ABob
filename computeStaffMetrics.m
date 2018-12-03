@@ -1,5 +1,5 @@
-function [ d, n ] = compStaffMetrics( BW )
-%COMPSTAFFMETRICS Compute distances n (line width) and d (line distance)
+function [ d, n ] = computeStaffMetrics( BW )
+%COMPUTESTAFFMETRICS Compute distances n (line width) and d (line distance)
 % Input:
 %   BW - score image, binary and inverted (staff lines and notes = white =
 %   1 and background = black = 0)
