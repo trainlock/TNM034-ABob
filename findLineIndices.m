@@ -27,7 +27,7 @@ lineIndices = locs(linePeaks);
 
 % Test if nr indices is divisible by 5, else show an error
 if(rem(length(lineIndices), 5) ~= 0)
-    error("Number of found lines not divisible by 5.");
+    error('Number of found lines not divisible by 5.');
 end
 
 end
