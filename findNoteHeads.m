@@ -21,9 +21,7 @@ IM = IM-IM1; % Remove found lines
 IM = bwmorph(IM, 'open');
 
 % Opening with ciruclar (disk) structuring element to separate the heads
-IM = imopen(IM,strel('disk',floor(d_avg/2))); % OBS! Same here. Size based on image scale
-
-% Find the note head positions (centroids of objects in IM)
+IM = imopen(IM,strel('disk',round(d_avg/2))); 
 L = bwlabel(IM);
 s = regionprops(L,'centroid');
 heads = cat(1, s.Centroid); % The result!
