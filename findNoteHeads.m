@@ -9,9 +9,16 @@ function [heads] = findNoteHeads(BW, d)
 % Average distance between lines (avg height of note head)
 d_avg = (d(2)+d(1))/2; 
 
-% first remove any thick beams using opening
-IM = imopen(BW,strel('rectangle',[floor(d_avg/3),floor(2*d_avg)]));
+% first remove any thick horizontal beams using opening
+IM = imopen(BW,strel('rectangle',[floor(d_avg/4),floor(2*d_avg)]));
 IM = BW-IM; % Remove the beams.
+
+% remove thick vertical lines using opening
+IM1 = imopen(BW,strel('rectangle',[floor(2*d_avg), floor(d_avg/2.5)]));
+IM = IM-IM1; % Remove found lines
+
+% Clean up a bit
+IM = bwmorph(IM, 'open');
 
 % Opening with ciruclar (disk) structuring element to separate the heads
 IM = imopen(IM,strel('disk',floor(d_avg/2))); % OBS! Same here. Size based on image scale
