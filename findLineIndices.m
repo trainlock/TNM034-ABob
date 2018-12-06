@@ -25,9 +25,37 @@ lineIndices = locs(linePeaks);
 % hold on
 % plot(lineIndices, thresh, '*r')
 
-% Test if nr indices is divisible by 5, else show an error
+
+% Make a guess if nr of indices is not divisible by 5 
+% OBS: This method is not as accurate with its positions yet!
 if(rem(length(lineIndices), 5) ~= 0)
-    error('Number of found lines not divisible by 5.');
+
+    % Locate gruops
+    dfilt = true(20,6);
+    staffboxes = imclose(BW,dfilt ); %close the staff lines toghether
+    sumStaff = sum(staffboxes, 2);
+    staffGroupIntervals = sumStaff > max(sumStaff)*0.8;
+
+    % Using the box indices to guess line indices
+    % Starting points - positive derivative, end points negative, others 0
+    startend = diff(staffGroupIntervals);
+    a = 1:size(startend,1);
+    startend = startend.*(a'); % set value to index
+    startend = startend(startend ~= 0); %keep only the indices with start and end
+    
+    
+    lineIndices = zeros(5*size(startend,1)/2, 1);
+    
+    % Set the indices eaqually spaced between the staff edges
+    for i = 1:size(startend,1)/2
+        j = 2*(i-1)+1;
+        first = startend(j);
+        last = -startend(j+1);
+        spacing = floor((last-first)/4);
+        
+        li = 5*(i-1)+1;
+        lineIndices(li:li+4) = first:spacing:last;
+    end
 end
 
 end
