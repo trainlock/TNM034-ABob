@@ -7,10 +7,17 @@ function [subImages] = createSubImages(im,lineIndices)
 nrGroups = floor(length(lineIndices) / 5); % ASSUMPTION: previous steps fins all and only lines
                                            % If decimal number, something
                                            % went wrong earlier.. 
+                                           
 %Extract part of image with stafflines, padding: the height of one group
 subImages = im;
 if(nrGroups > 0)
     padding = 3* ceil(lineIndices(3) - lineIndices(1));  % dist from center line to top line
+    
+    % Pad top and bottom of image with white, in case there is not enough
+    % pixels to "cut" using the padding
+    % OBS! Requires Adding one padding to the values of the lineindices
+    im = padarray(im,[padding 0],1,'both');
+    lineIndices = lineIndices + padding;
     
     rowCounter = 3;
     subImages = uint8(zeros(padding*2+1, size(im,2), nrGroups));

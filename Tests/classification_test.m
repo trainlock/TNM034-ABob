@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function strout = tnm034(im) 
+function strout = classification_test(im) 
 % 
 % Im: Inputimage of captured sheet music. Im should be in
 % double format, normalized to the interval [0,1] 
@@ -7,22 +7,9 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im3s.jpg';
+filename = '././Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
-
-%% Struct for symbol
-clear sNotes
-clear resultingStruct
-% sNotes = struct('headPos', {}, 'type', {});
-
-%% Preprocessing I: Fix camera images to scanned quality
-
-% Compensate for unsharp images
-im = imsharpen(im);
-
-% figure
-% imshow(im)
 
 %% Preprocessing II: Clean preprocessed image
 % Rotate image, find and remove lines and clip image to subimages
@@ -33,9 +20,6 @@ im = imsharpen(im);
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 [BW, im2] = invertAndRotate(im);
-
-% figure
-% imshow(BW)
 
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
@@ -52,10 +36,6 @@ level = graythresh(subIms);
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
 BW_aligned = im2bw(subIms_aligned, level);
-
-% figure
-% imshow(BW_aligned)
-
 lineIndices = findLineIndices(BW_aligned);
 
 % Create subimages without lines (binary)
@@ -64,18 +44,13 @@ for i = 1:size(subIms,3)
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n); 
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
     % Try to fix some possibly broken objects
     BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
-    
-%     figure
-%     imshow(BW_subIms(:,:,i))
 end
 
 
-%% Process each subimage 
-
-res = ''; % empty string for result
+%% Segmentation 
 
 for subIm = 1:size(BW_subIms,3)
     
@@ -92,32 +67,27 @@ for subIm = 1:size(BW_subIms,3)
     % Filter on area and height to remove small objects
     % OBS! Broken objects will be removed
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
-    
-    % CLASSIFICATION
-    
-    % Classify the found objects in the image 
-    sNotes = struct('headPos', {}, 'type', {});
-    for i = 1:size(boundingboxes)
-        bbx = boundingboxes(i,:); 
-        [r, c] = getBboxIdx(bbx);
-        note = BW_subIms(r,c,subIm);
-        [resultingStruct, isEmpty] = classification(note, d);
-        if(isEmpty == 0)
-            sNotes = [sNotes, resultingStruct]; % Add result to a list
-        end
-        clear resultingStruct
-    end
-    
-    % PITCH AND OUTPUT STRING 
-    
-    res = [res, determinePitch(sNotes, lineIndices)];
-    
-    % At end of line, add an 'n'
-    res = [res, 'n'];
-    
-end 
+end % TODO: extend loop to include classification and writing pitch
 
-strout = res;
+%% Classification
+
+clear sNotes
+clear resultingStruct
+sNotes = struct('headPos', {}, 'type', {});
+
+for i = 1:size(boundingboxes)
+    % 2-3+5-6 = large object, 10+12 = single flag
+    bbx = boundingboxes(i,:); % Två noter saknas! De som inte har någon flagga!
+    [r, c] = getBboxIdx(bbx);
+    note = BW_subIms(r,c,subIm);
+    [resultingStruct, isEmpty] = classification(note, d);
+    if(isEmpty == 0)
+        sNotes = [sNotes, resultingStruct]; % Add result to a list
+    end
+    clear resultingStruct
+end
+
+strout = 'hej';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 

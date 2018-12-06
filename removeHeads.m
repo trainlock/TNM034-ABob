@@ -1,7 +1,11 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 function noHeadsIm = removeHeads(notePadded, heads)
 %REMOVEHEADS Returns an image without the noteheads
 %   notePadded: Image of an object of notes
 %   heads: Vector containing the positions of the noteheads
+%
+%   noHeadsIm: Image without note heads
+%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
 addedMasks = zeros(size(notePadded));
 [rNum,cNum,~] = size(notePadded);
