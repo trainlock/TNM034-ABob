@@ -19,9 +19,6 @@ if(nrGroups > 0)
     im = padarray(im,[padding 0],1,'both');
     lineIndices = lineIndices + padding;
     
-    figure
-    imshow(im)
-    
     rowCounter = 3;
     subImages = uint8(zeros(padding*2+1, size(im,2), nrGroups));
     for i = 1:nrGroups 
