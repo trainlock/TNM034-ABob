@@ -14,7 +14,7 @@ im = rgb2gray(im);
 %% Struct for symbol
 clear sNotes
 clear resultingStruct
-sNotes = struct('headPos', {}, 'type', {});
+% sNotes = struct('headPos', {}, 'type', {});
 
 %% Preprocessing I: Fix camera images to scanned quality
 
@@ -59,6 +59,8 @@ end
 
 %% Process each subimage 
 
+res = ''; % empty string for result
+
 for subIm = 1:size(BW_subIms,3)
     
     % SEGMENTATION
@@ -77,6 +79,8 @@ for subIm = 1:size(BW_subIms,3)
     
     % CLASSIFICATION
     
+    % Classify the found objects in the image 
+    sNotes = struct('headPos', {}, 'type', {});
     for i = 1:size(boundingboxes)
         bbx = boundingboxes(i,:); 
         [r, c] = getBboxIdx(bbx);
@@ -90,10 +94,14 @@ for subIm = 1:size(BW_subIms,3)
     
     % PITCH AND OUTPUT STRING 
     
+    res = [res, determinePitch(sNotes, lineIndices)];
+    
+    % At end of line, add an 'n'
+    res = [res, 'n'];
     
 end 
 
-strout = 'hej';
+strout = res;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
