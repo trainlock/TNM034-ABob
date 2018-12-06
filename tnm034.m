@@ -11,6 +11,16 @@ filename = './Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
+%% Struct for symbol
+
+% Position of heads if any (can be array)
+% Duration
+% Interesting or not?
+
+clear sNotes
+clear resultingStruct
+sNotes = struct('headPos', {}, 'type', {});
+
 %% Preprocessing I: Fix camera images to scanned quality
 
 %% Preprocessing II: Clean preprocessed image
@@ -68,7 +78,18 @@ for subIm = 1:size(BW_subIms,3)
     % OBS! Broken objects will be removed
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes);
     
-
+    for i = 1:size(boundingboxes)
+        % 2-3+5-6 = large object, 10+12 = single flag
+        bbx = boundingboxes(i,:); % Två noter saknas! De som inte har någon flagga!
+        [r, c] = getBboxIdx(bbx);
+        note = BW_subIms(r,c,subIm);
+        [resultingStruct, isEmpty] = classification(note, d);
+        if(isEmpty == 0)
+            % The resulting array is not quite right...
+            sNotes = [sNotes, resultingStruct]; % Add result to a list
+        end
+        clear resultingStruct
+    end
 end % TODO: extend loop to include classification and writing pitch
 
 
@@ -87,14 +108,28 @@ end % TODO: extend loop to include classification and writing pitch
 
 % Template matching with normxcorr2(TEMPLATE, A)
 
-
 % Local vertical/horisontal projection to find flags (or not)
 % Local vertical projection to find bars
-
 
 % bwlabel for classification, new bwconncomp instead of bwlabel
 % Labeling sets so that each object have its unique label
 
+% clear sNotes
+% clear resultingStruct
+% sNotes = struct('headPos', {}, 'type', {});
+
+% for i = 1:size(boundingboxes)
+%     % 2-3+5-6 = large object, 10+12 = single flag
+%     bbx = boundingboxes(i,:); % Två noter saknas! De som inte har någon flagga!
+%     [r, c] = getBboxIdx(bbx);
+%     note = BW_subIms(r,c,subIm);
+%     [resultingStruct, isEmpty] = classification(note, d);
+%     if(isEmpty == 0)
+%         % The resulting array is not quite right...
+%         sNotes = [sNotes, resultingStruct]; % Add result to a list
+%     end
+%     clear resultingStruct
+% end
 
 % Regionprops, centroid and eulernumber
 % Centroid returns center of mass of the region

@@ -18,7 +18,7 @@ BWnl = bwmorph(BWnl, 'close', 2);
 
 % Remove all objects that has a smaller area 
 BWnl = bwareaopen(BWnl, floor(3.14*(d_avg/2)*(d_avg/2)));
-
+imshow(BWnl)
 imWithoutLines = BWnl;
 
 end

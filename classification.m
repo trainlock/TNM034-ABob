@@ -1,62 +1,91 @@
-function classifiedNote = classification(interestingBoxes, BW_subIms, subIm)
+%%%%%%%%%%%%%%%%%%%%%%%%%% 
+function [sNotes, isEmpty] = classification(note, d)
 %classification Classifies if the notes are 1/4 or 1/8 else discarded
-%   interestingBoxes: Contains images of each note or group of notes
-%   BW_subIms: 
-%   subIm: 
+%   note: Contains image of note or group of notes
+%   d: Size of notehead
+%
+%   sNotes: struct with added objects
+%   isEmpty: 1 if no objects been added otherwise 0
+%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-% Ska få in note bilden, resten behöver inte vara med. 
+% Ska få in note bilden, resten behöver inte vara med.
 
-% DELA UPP HELA KODEN FRÅN SINGLE OCH MULTIPLES DIREKT!
-
-% 2-5 = large object, 6+8 = single flag
-bbx = interestingBoxes(8,:); % Två noter saknas! De som inte har någon flagga!
-[r, c] = getBboxIdx(bbx);
-note = BW_subIms(r,c,subIm);
-figure
-imshow(note)
+% figure
+% imshow(note)
+sNotes = struct('headPos', {}, 'type', {});
 
 % Add padding to image
 notePadded = padarray(note,[2 2],'both');
+nrElements = 1;
+startNrElements = nrElements;
 
 % Get positions of note heads
-heads = findNoteHeads(notePadded);
-if(size(heads,1) >= 1)
-    imshow(notePadded)
-    hold on
-    plot(heads(:,1),heads(:,2), 'b*')
-    hold off
+heads = findNoteHeads(notePadded, d);
 
+if(size(heads,1) >= 1)
+%     imshow(notePadded)
+%     hold on
+%     plot(heads(:,1),heads(:,2), 'b*')
+%     hold off
+    
     midOfIm = size(note,1)/2;
     isSingle = size(heads,1) == 1;
     % Lägg till något som kollar om det är flera nothuvuden på ett skaft
 end
 if(size(heads,1) < 1)
-    a = "NO heads"
+    % a = "NO heads"
+    isEmpty = 1;
 elseif(isSingle) % For single objects
     % Place the bounding box beneath the note head.
     % Might need to be modified to detect two flags
     numberOfColumns = size(notePadded, 1);
-    numberOfRows = 5; % 1d
+    numberOfRows = d(1); % 5
     leftColumn = 0;
     topRow = midOfIm;
     
     % Create croppedImage of element
     % Check if there is one, two or no flags
     croppedImage = imcrop(notePadded, [leftColumn, topRow, numberOfColumns, numberOfRows]);
-    figure
-    imshow(croppedImage)
+%     figure
+%     imshow(croppedImage)
     
     % Projection
     verticalProfile = sum(croppedImage, 1); % Single head
     peaks = findpeaks(verticalProfile);
     
+    % TODO: Fix so that it can handle thick bars (two bars merged to one)
+    
     % This applies for both single and multiple heads
     if(size(peaks,2) <= 1) % No bars or flags
-        A = "No flags = 1/4"
+        % A = "No flags = 1/4"
+        % Save head position if head exists in struct element
+        sNotes(nrElements).headPos = heads;
+        
+        % Add duration note4
+        sNotes(nrElements).type = 'note4';
+        
+        % Increment nr of elements in struct
+        nrElements = nrElements + 1;
+        
+        isEmpty = 0; % Not empty
+
     elseif(size(peaks,2) == 2) % One bar of flag
-        A = "One flag = 1/8"
+        % A = "One flag = 1/8"
+        % Save head position if head exists in struct element
+        sNotes(nrElements).headPos = heads;
+        
+        % Add duration note8
+        sNotes(nrElements).type = 'note8';
+        
+        % Increment nr of elements in struct
+        nrElements = nrElements + 1;
+        
+        isEmpty = 0; % Not empty
+
     else % Multiple bars or flags
-        A = "Multiple flags = less"
+        % A = "Multiple flags = less"
+        % Not interesing, don't return
+        isEmpty = 1;
     end
 else
     noHeads = removeHeads(notePadded, heads);
@@ -72,22 +101,22 @@ else
     % Loop through all elements except the last one
     for i = 1:size(heads, 1)-1
         if(isBarBottom == 1) % Head on top
-            numberOfColumns = 7; % 1d
-            numberOfRows = 25; %2d+lite till+position
+            numberOfColumns = (d(1)+d(2))/2; % 7, 1d
+            numberOfRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
             leftColumn = heads(i,1); 
             topRow = size(notePadded,1)-numberOfRows;
             
         else % Head on bottom
-            numberOfColumns = 7; % 1d
-            numberOfRows = 25; % 2d+lite till+position
-            leftColumn = heads(i,1)+7; % + 1d
+            numberOfColumns = (d(1)+d(2))/2; % 7, 1d
+            numberOfRows = 3*(d(1)+d(2))/2; % 25, 2d+lite till+position
+            leftColumn = heads(i,1)+(d(1)+d(2))/2; % + 7, 1d
             topRow = 0;
         end
         % Create croppedImage for each element
         % Check if there is one or more bars
         croppedImage = imcrop(notePadded, [leftColumn, topRow, numberOfColumns, numberOfRows]);
-        figure
-        imshow(croppedImage)
+%         figure
+%         imshow(croppedImage)
         
         % Projection
         horisontalProfile = sum(croppedImage, 2); % Multiple heads
@@ -95,21 +124,42 @@ else
         
         % This applies for both single and multiple heads
         if(size(peaks,1) < 1) % No bars or flags
-            A = "No flags or bars"
+            % A = "No bars"
         elseif(size(peaks,1) == 1) % One bar
-            A = "One bar = 1/8"
+            % A = "One bar = 1/8"
+            % Save head position if head exists in struct element
+            sNotes(nrElements).headPos = heads(i,:);
+
+            % Add duration note8
+            sNotes(nrElements).type = 'note8';
+
+            % Increment nr of elements in struct
+            nrElements = nrElements + 1;
+            
+            % Add a check to see if this is the second last element
+            % If it is, then the last element should be added as well. 
+            if(i == size(heads, 1)-1)
+                % A = "One more bar = 1/8"
+                % Save head position if head exists in struct element
+                sNotes(nrElements).headPos = heads(i+1,:);
+
+                % Add duration note8
+                sNotes(nrElements).type = 'note8';
+
+                % Increment nr of elements in struct
+                nrElements = nrElements + 1;
+            end
         else % Multiple bars
-            A = "Multiple bars = less"
+            % A = "Multiple bars = less"
         end
     end
+    % Check if at least one object in multiple object images has been added
+    if(startNrElements < nrElements)
+        isEmpty = 0; % Not Empty
+    else
+        isEmpty = 1; % Empty
+    end
 end
-
-% Hur vill jag returnera informationen?? Om jag hittat noter som uppfyller
-% rätt krav, hur sparar jag dem då? I en lista? Som en position? Skriver
-% direkt till en lista med alla pitchar? Vad vill jag returnera och vad
-% vill jag spara?
-
-classifiedNote = "A";
 
 end
 
