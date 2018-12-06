@@ -5,9 +5,10 @@ function strout = classification_test(im)
 % double format, normalized to the interval [0,1] 
 % strout: The resulting character string of the detected 
 % notes. The string must follow a pre-defined format. 
-
+clear all
+clc
 format compact
-filename = '././Images_Training/im1s.jpg';
+filename = '././Images_Training/Le_1_Example_kontraster.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
@@ -20,7 +21,8 @@ im = rgb2gray(im);
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 [BW, im2] = invertAndRotate(im);
-
+figure
+imshow(BW)
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
 
@@ -51,7 +53,7 @@ end
 
 
 %% Segmentation 
-
+sizeBW = size(BW_subIms, 3)
 for subIm = 1:size(BW_subIms,3)
     
     % SEGMENTATION
@@ -71,21 +73,28 @@ end % TODO: extend loop to include classification and writing pitch
 
 %% Classification
 
+clc
 clear sNotes
 clear resultingStruct
 sNotes = struct('headPos', {}, 'type', {});
 
-for i = 1:size(boundingboxes)
+%interestingBoxes = boundingboxes(keptId,:);
+
+%for i = 2:size(interestingBoxes, 1)
     % 2-3+5-6 = large object, 10+12 = single flag
-    bbx = boundingboxes(i,:); % Två noter saknas! De som inte har någon flagga!
-    [r, c] = getBboxIdx(bbx);
-    note = BW_subIms(r,c,subIm);
+%     bbx = interestingBoxes(i,:); % Två noter saknas! De som inte har någon flagga!
+%     [r, c] = getBboxIdx(bbx);
+%     note = BW_subIms(r,c,subIm);
+    filename = '././Images_Training/doubleNote2.png';
+    im = imread(filename);
+    level = graythresh(im);
+    note = im2bw(im,level);
     [resultingStruct, isEmpty] = classification(note, d);
     if(isEmpty == 0)
         sNotes = [sNotes, resultingStruct]; % Add result to a list
     end
     clear resultingStruct
-end
+%end
 
 strout = 'hej';
 
