@@ -7,7 +7,7 @@ function strout = classification_test(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = '././Images_Training/im3s.jpg';
+filename = '././Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
