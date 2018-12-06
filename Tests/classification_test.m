@@ -8,9 +8,14 @@ function strout = classification_test(im)
 clear all
 clc
 format compact
-filename = '././Images_Training/Le_1_Example_kontraster.jpg';
+filename = '././Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
+
+%% Preprocessing I: Fix camera images to scanned quality
+
+% Compensate for unsharp images
+im = imsharpen(im);
 
 %% Preprocessing II: Clean preprocessed image
 % Rotate image, find and remove lines and clip image to subimages
@@ -21,8 +26,7 @@ im = rgb2gray(im);
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 [BW, im2] = invertAndRotate(im);
-figure
-imshow(BW)
+
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
 
@@ -38,6 +42,7 @@ level = graythresh(subIms);
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
 BW_aligned = im2bw(subIms_aligned, level);
+
 lineIndices = findLineIndices(BW_aligned);
 
 % Create subimages without lines (binary)
@@ -46,15 +51,14 @@ for i = 1:size(subIms,3)
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n); 
     % Try to fix some possibly broken objects
     BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
 end
 
 
 %% Segmentation 
-sizeBW = size(BW_subIms, 3)
-for subIm = 1:size(BW_subIms,3)
+for subIm = 1:1%size(BW_subIms,3)
     
     % SEGMENTATION
     
@@ -71,6 +75,7 @@ for subIm = 1:size(BW_subIms,3)
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
 end % TODO: extend loop to include classification and writing pitch
 
+
 %% Classification
 
 clc
@@ -78,23 +83,18 @@ clear sNotes
 clear resultingStruct
 sNotes = struct('headPos', {}, 'type', {});
 
-%interestingBoxes = boundingboxes(keptId,:);
+interestingBoxes = boundingboxes(keptId,:);
 
-%for i = 2:size(interestingBoxes, 1)
-    % 2-3+5-6 = large object, 10+12 = single flag
-%     bbx = interestingBoxes(i,:); % Två noter saknas! De som inte har någon flagga!
-%     [r, c] = getBboxIdx(bbx);
-%     note = BW_subIms(r,c,subIm);
-    filename = '././Images_Training/doubleNote2.png';
-    im = imread(filename);
-    level = graythresh(im);
-    note = im2bw(im,level);
+for i = 2:size(interestingBoxes, 1)
+    bbx = interestingBoxes(i,:); 
+    [r, c] = getBboxIdx(bbx);
+    note = BW_subIms(r,c,subIm);
     [resultingStruct, isEmpty] = classification(note, d);
     if(isEmpty == 0)
         sNotes = [sNotes, resultingStruct]; % Add result to a list
     end
     clear resultingStruct
-%end
+end
 
 strout = 'hej';
 

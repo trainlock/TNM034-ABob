@@ -97,8 +97,9 @@ for subIm = 1:size(BW_subIms,3)
     
     % Classify the found objects in the image 
     sNotes = struct('headPos', {}, 'type', {});
-    for i = 1:size(boundingboxes)
-        bbx = boundingboxes(i,:); 
+    interestingBoxes = boundingboxes(keptId,:)
+    for i = 2:size(interestingBoxes, 1)
+        bbx = interestingBoxes(i,:); 
         [r, c] = getBboxIdx(bbx);
         note = BW_subIms(r,c,subIm);
         [resultingStruct, isEmpty] = classification(note, d);
