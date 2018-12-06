@@ -13,7 +13,6 @@ d_avg = (d(2)+d(1))/2;
 % Add to binary images into one complete binary image withouth any lines
 BWnl = imopen(BW, strel('line', floor(d_avg/3), 90));
 
-<<<<<<< HEAD
 % Try to fix accidentally broken objects a bit. 
 BWnl = bwmorph(BWnl, 'close', 2);
 

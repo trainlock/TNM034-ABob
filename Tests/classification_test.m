@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function strout = tnm034(im) 
+function strout = classification_test(im) 
 % 
 % Im: Inputimage of captured sheet music. Im should be in
 % double format, normalized to the interval [0,1] 
@@ -7,7 +7,7 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im3s.jpg';
+filename = '././Images_Training/im3s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
