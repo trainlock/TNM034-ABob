@@ -11,13 +11,6 @@ filename = './Images_Training/im3s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
-%% Struct for symbol
-clear sNotes
-clear resultingStruct
-sNotes = struct('headPos', {}, 'type', {});
-
-%% Preprocessing I: Fix camera images to scanned quality
-
 %% Preprocessing II: Clean preprocessed image
 % Rotate image, find and remove lines and clip image to subimages
 
@@ -74,50 +67,25 @@ for subIm = 1:size(BW_subIms,3)
     % Filter on area and height to remove small objects
     % OBS! Broken objects will be removed
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
-    
-    for i = 1:size(boundingboxes)
-        bbx = boundingboxes(i,:); 
-        [r, c] = getBboxIdx(bbx);
-        note = BW_subIms(r,c,subIm);
-        [resultingStruct, isEmpty] = classification(note, d);
-        if(isEmpty == 0)
-            sNotes = [sNotes, resultingStruct]; % Add result to a list
-        end
-        clear resultingStruct
-    end
 end % TODO: extend loop to include classification and writing pitch
-
-
-% Search for "interesting" parts in the image. 
-% Apply Sobel-filter to find gradient and the change in the image. 
-% Make objects easier to find using opening
-% Opening with discs help find note heads, opening with horisontal
-% lemenents help find stems
-
-% When separate objects are found, make sure that they are in a correct
-% order where they are read horisontally, according to lines. 
-
 
 %% Classification
 
-% Template matching with normxcorr2(TEMPLATE, A)
+clear sNotes
+clear resultingStruct
+sNotes = struct('headPos', {}, 'type', {});
 
-% Local vertical/horisontal projection to find flags (or not)
-% Local vertical projection to find bars
-
-% bwlabel for classification, new bwconncomp instead of bwlabel
-% Labeling sets so that each object have its unique label
-
-% Regionprops, centroid and eulernumber
-% Centroid returns center of mass of the region
-% EulerNumber returns 1 if no hole is found in the object and 0 if
-% a hole exists. 
-
-%% Pitch
-
-% See if object is interesting and then find the pitch for it. 
-% Add pitch to strout. Write from left to right (line). 
-% fourth = A, eigth = a
+for i = 1:size(boundingboxes)
+    % 2-3+5-6 = large object, 10+12 = single flag
+    bbx = boundingboxes(i,:); % Två noter saknas! De som inte har någon flagga!
+    [r, c] = getBboxIdx(bbx);
+    note = BW_subIms(r,c,subIm);
+    [resultingStruct, isEmpty] = classification(note, d);
+    if(isEmpty == 0)
+        sNotes = [sNotes, resultingStruct]; % Add result to a list
+    end
+    clear resultingStruct
+end
 
 strout = 'hej';
 
