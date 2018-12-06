@@ -76,36 +76,69 @@ elseif(isSingle) % For single objects
     % array. (Can be done by looking at the position of the noteheads and
     % see if they have approximately the same x-value
     
-    % This applies for both single and multiple heads
-    if(size(peaks,2) <= 1) % No bars or flags
-        A = "No flags = 1/4"
-        % Save head position if head exists in struct element
-        sNotes(nrElements).headPos = heads;
-        
-        % Add duration note4
-        sNotes(nrElements).type = 'note4';
-        
-        % Increment nr of elements in struct
-        nrElements = nrElements + 1;
-        
-        isEmpty = 0; % Not empty
+    if(multipleHeads == 1)
+        for i = 1:size(heads, 1)
+            if(size(peaks,2) <= 1)
+                A = "One bar = 1/4"
+                % Save head position if head exists in struct element
+                sNotes(nrElements).headPos = heads(i,:);
 
-    elseif(size(peaks,2) == 2) % One bar of flag
-        A = "One flag = 1/8"
-        % Save head position if head exists in struct element
-        sNotes(nrElements).headPos = heads;
-        
-        % Add duration note8
-        sNotes(nrElements).type = 'note8';
-        
-        % Increment nr of elements in struct
-        nrElements = nrElements + 1;
-        
-        isEmpty = 0; % Not empty
+                % Add duration note8
+                sNotes(nrElements).type = 'note4';
 
-    else % Multiple bars or flags
-        A = "Multiple flags = less"
-        isEmpty = 1; % Not interesting = regarded as empty
+                % Increment nr of elements in struct
+                nrElements = nrElements + 1;
+                
+                isEmpty = 0; % Not empty
+            elseif(size(peaks,2) == 2)
+                A = "One bar = 1/8"
+                % Save head position if head exists in struct element
+                sNotes(nrElements).headPos = heads(i,:);
+
+                % Add duration note8
+                sNotes(nrElements).type = 'note8';
+
+                % Increment nr of elements in struct
+                nrElements = nrElements + 1;
+                
+                isEmpty = 0; % Not empty
+            else
+                A = "Multiple flags = less"
+                isEmpty = 1; % Not interesting = regarded as empty
+            end
+        end
+    else
+        % This applies for both single and multiple heads
+        if(size(peaks,2) <= 1) % No bars or flags
+            A = "No flags = 1/4"
+            % Save head position if head exists in struct element
+            sNotes(nrElements).headPos = heads;
+
+            % Add duration note4
+            sNotes(nrElements).type = 'note4';
+
+            % Increment nr of elements in struct
+            nrElements = nrElements + 1;
+
+            isEmpty = 0; % Not empty
+
+        elseif(size(peaks,2) == 2) % One bar of flag
+            A = "One flag = 1/8"
+            % Save head position if head exists in struct element
+            sNotes(nrElements).headPos = heads;
+
+            % Add duration note8
+            sNotes(nrElements).type = 'note8';
+
+            % Increment nr of elements in struct
+            nrElements = nrElements + 1;
+
+            isEmpty = 0; % Not empty
+
+        else % Multiple bars or flags
+            A = "Multiple flags = less"
+            isEmpty = 1; % Not interesting = regarded as empty
+        end
     end
 else
     noHeads = removeHeads(notePadded, heads);
