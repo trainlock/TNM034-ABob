@@ -7,7 +7,7 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im1s.jpg';
+filename = './Images_Training/im3s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
@@ -57,6 +57,8 @@ for i = 1:size(subIms,3)
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
     BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
+    % Try to fix some possibly broken objects
+    BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
 end
 
 
@@ -74,9 +76,9 @@ for subIm = 1:size(BW_subIms,3)
     areas = cat(1,STATS.Area);
     boundingboxes = cat(1, STATS.BoundingBox);
 
-    % Filter on area to remove small objects
+    % Filter on area and height to remove small objects
     % OBS! Broken objects will be removed
-    [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes);
+    [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
     
     for i = 1:size(boundingboxes)
         % 2-3+5-6 = large object, 10+12 = single flag
