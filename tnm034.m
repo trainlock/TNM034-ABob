@@ -18,6 +18,12 @@ clear resultingStruct
 
 %% Preprocessing I: Fix camera images to scanned quality
 
+% Compensate for unsharp images
+im = imsharpen(im);
+
+% figure
+% imshow(im)
+
 %% Preprocessing II: Clean preprocessed image
 % Rotate image, find and remove lines and clip image to subimages
 
@@ -27,6 +33,9 @@ clear resultingStruct
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 [BW, im2] = invertAndRotate(im);
+
+% figure
+% imshow(BW)
 
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
@@ -43,6 +52,10 @@ level = graythresh(subIms);
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
 BW_aligned = im2bw(subIms_aligned, level);
+
+% figure
+% imshow(BW_aligned)
+
 lineIndices = findLineIndices(BW_aligned);
 
 % Create subimages without lines (binary)
@@ -51,9 +64,12 @@ for i = 1:size(subIms,3)
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n); 
     % Try to fix some possibly broken objects
     BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
+    
+%     figure
+%     imshow(BW_subIms(:,:,i))
 end
 
 
