@@ -14,9 +14,15 @@ im = rgb2gray(im);
 %% Struct for symbol
 clear sNotes
 clear resultingStruct
-sNotes = struct('headPos', {}, 'type', {});
+% sNotes = struct('headPos', {}, 'type', {});
 
 %% Preprocessing I: Fix camera images to scanned quality
+
+% Compensate for unsharp images
+im = imsharpen(im);
+
+% figure
+% imshow(im)
 
 %% Preprocessing II: Clean preprocessed image
 % Rotate image, find and remove lines and clip image to subimages
@@ -27,6 +33,9 @@ sNotes = struct('headPos', {}, 'type', {});
 % and a rotated binary image. 
 % Make binary and invert (0->1, 1->0)
 [BW, im2] = invertAndRotate(im);
+
+% figure
+% imshow(BW)
 
 % Find lines and these save row indices
 lineIndices = findLineIndices(BW);
@@ -43,6 +52,10 @@ level = graythresh(subIms);
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
 BW_aligned = im2bw(subIms_aligned, level);
+
+% figure
+% imshow(BW_aligned)
+
 lineIndices = findLineIndices(BW_aligned);
 
 % Create subimages without lines (binary)
@@ -51,13 +64,18 @@ for i = 1:size(subIms,3)
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), d);
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n); 
     % Try to fix some possibly broken objects
     BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
+    
+%     figure
+%     imshow(BW_subIms(:,:,i))
 end
 
 
-%% Segmentation 
+%% Process each subimage 
+
+res = ''; % empty string for result
 
 for subIm = 1:size(BW_subIms,3)
     
@@ -75,6 +93,10 @@ for subIm = 1:size(BW_subIms,3)
     % OBS! Broken objects will be removed
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
     
+    % CLASSIFICATION
+    
+    % Classify the found objects in the image 
+    sNotes = struct('headPos', {}, 'type', {});
     for i = 1:size(boundingboxes)
         bbx = boundingboxes(i,:); 
         [r, c] = getBboxIdx(bbx);
@@ -85,41 +107,17 @@ for subIm = 1:size(BW_subIms,3)
         end
         clear resultingStruct
     end
-end % TODO: extend loop to include classification and writing pitch
+    
+    % PITCH AND OUTPUT STRING 
+    
+    res = [res, determinePitch(sNotes, lineIndices)];
+    
+    % At end of line, add an 'n'
+    res = [res, 'n'];
+    
+end 
 
-
-% Search for "interesting" parts in the image. 
-% Apply Sobel-filter to find gradient and the change in the image. 
-% Make objects easier to find using opening
-% Opening with discs help find note heads, opening with horisontal
-% lemenents help find stems
-
-% When separate objects are found, make sure that they are in a correct
-% order where they are read horisontally, according to lines. 
-
-
-%% Classification
-
-% Template matching with normxcorr2(TEMPLATE, A)
-
-% Local vertical/horisontal projection to find flags (or not)
-% Local vertical projection to find bars
-
-% bwlabel for classification, new bwconncomp instead of bwlabel
-% Labeling sets so that each object have its unique label
-
-% Regionprops, centroid and eulernumber
-% Centroid returns center of mass of the region
-% EulerNumber returns 1 if no hole is found in the object and 0 if
-% a hole exists. 
-
-%% Pitch
-
-% See if object is interesting and then find the pitch for it. 
-% Add pitch to strout. Write from left to right (line). 
-% fourth = A, eigth = a
-
-strout = 'hej';
+strout = res;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 

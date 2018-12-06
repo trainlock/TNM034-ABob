@@ -4,3 +4,4 @@
 *.mat
 src/MATLAB/*.c
 src/MATLAB/*.log
+.DS_Store
