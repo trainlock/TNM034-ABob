@@ -37,7 +37,7 @@ if(size(heads,1) >= 1)
             xPrev = heads(j-1,1);
             xDiff = abs(x-xPrev);
             % Check if heads are on the same staff
-            if(0 <= xDiff && xDiff <= d(2))
+            if(0 <= xDiff && xDiff <= 2*d(2))
                 multipleHeads = 1;
                 isSingle = 1;
             elseif(xDiff > d(2))
