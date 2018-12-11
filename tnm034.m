@@ -109,6 +109,9 @@ for subIm = 1:nrSubIms
         clear resultingStruct
     end
     
+    % TEST - Remember to comment before submission!!!
+    plotClassification(BW_subIms(:,:,subIm), BW_subNSO, sNotes);
+    
     % PITCH AND OUTPUT STRING 
     
     res = [res, determinePitch(sNotes, lineIndices)];
