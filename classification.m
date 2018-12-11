@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function [sNotes, isEmpty] = classification(note, d)
+function [sNotes, isEmpty] = classification(im, d, bbx)
 %classification Classifies if the notes are 1/4 or 1/8 else discarded
 %   note: Contains image of note or group of notes
 %   d: Size of notehead
@@ -12,12 +12,19 @@ function [sNotes, isEmpty] = classification(note, d)
 
 sNotes = struct('headPos', {}, 'type', {});
 
+% Extract the note from image using bounding box
+[rows, cols] = getBboxIdx(bbx); 
+note = im(rows,cols);
+
+% Value for padding image (easier to find note head)
+padding = 2;
+
 % Add padding to image
-notePadded = padarray(note,[2 2],'both');
+notePadded = padarray(note,[padding padding],'both');
 nrElements = 1;
 startNrElements = nrElements;
 
-% Get positions of note heads
+% Get positions of note heads, from padded image ( OBS! [x y] )
 heads = findNoteHeads(notePadded, d);
 
 if(size(heads,1) >= 1)
@@ -28,8 +35,20 @@ if(size(heads,1) >= 1)
     
     midOfIm = size(note,1)/2;
     isSingle = size(heads,1) == 1;
-    % Lägg till något som kollar om det är flera nothuvuden på ett skaft
+    % TODO: Lägg till något som kollar om det är flera nothuvuden på ett skaft
+
+    % Compute actual headPos and show on image
+    actualHeads = heads - padding;  % Compensate for added padding
+    actualHeads(:,1) = actualHeads(:,1) + floor(bbx(1)); % x
+    actualHeads(:,2) = actualHeads(:,2) + floor(bbx(2)); % y
+    
+%     figure
+%     imshow(im)
+%     hold on
+%     plot(actualHeads(:,1),actualHeads(:,2), 'b*')
+%     hold off
 end
+
 if(size(heads,1) < 1)
 %     A = "NO heads"
     isEmpty = 1;
@@ -55,7 +74,7 @@ elseif(isSingle) % For single objects
     if(size(peaks,2) <= 1) % No bars or flags
 %         A = "No flags = 1/4"
         % Save head position if head exists in struct element
-        sNotes(nrElements).headPos = heads;
+        sNotes(nrElements).headPos = actualHeads;
         
         % Add duration note4
         sNotes(nrElements).type = 'note4';
@@ -68,7 +87,7 @@ elseif(isSingle) % For single objects
     elseif(size(peaks,2) == 2) % One bar of flag
 %         A = "One flag = 1/8"
         % Save head position if head exists in struct element
-        sNotes(nrElements).headPos = heads;
+        sNotes(nrElements).headPos = actualHeads;
         
         % Add duration note8
         sNotes(nrElements).type = 'note8';
@@ -136,7 +155,7 @@ else
         elseif(size(peaks,1) == 1 && meanVertical < (d(1)+d(2))/2) % One bar
 %             A = "One bar = 1/8"
             % Save head position if head exists in struct element
-            sNotes(nrElements).headPos = heads(i,:);
+            sNotes(nrElements).headPos = actualHeads(i,:);
 
             % Add duration note8
             sNotes(nrElements).type = 'note8';
@@ -149,7 +168,7 @@ else
             if(i == size(heads, 1)-1)
 %                 A = "One more bar = 1/8"
                 % Save head position if head exists in struct element
-                sNotes(nrElements).headPos = heads(i+1,:);
+                sNotes(nrElements).headPos = actualHeads(i+1,:);
 
                 % Add duration note8
                 sNotes(nrElements).type = 'note8';

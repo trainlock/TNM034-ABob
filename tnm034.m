@@ -93,15 +93,24 @@ for subIm = 1:size(BW_subIms,3)
     % OBS! Broken objects will be removed
     [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
     
+    % Recompute boundingboxes before classification (remove small objects)
+    
+    % TODO: Make a function for this (e.g. "findObjects")
+    % find separate objects and stats
+    CC = bwconncomp(BW_subNSO);
+    STATS = regionprops(CC, 'Area', 'BoundingBox', 'Centroid', 'Orientation');
+    
+    % Get matrices for different stats
+    areas = cat(1,STATS.Area);
+    boundingboxes = cat(1, STATS.BoundingBox);
+    
     % CLASSIFICATION
     
     % Classify the found objects in the image 
     sNotes = struct('headPos', {}, 'type', {});
     for i = 1:size(boundingboxes)
         bbx = boundingboxes(i,:); 
-        [r, c] = getBboxIdx(bbx);
-        note = BW_subIms(r,c,subIm);
-        [resultingStruct, isEmpty] = classification(note, d);
+        [resultingStruct, isEmpty] = classification(BW_subNSO, d, bbx);
         if(isEmpty == 0)
             sNotes = [sNotes, resultingStruct]; % Add result to a list
         end
