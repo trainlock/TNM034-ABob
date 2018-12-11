@@ -11,20 +11,19 @@ function [sNotes, isEmpty] = classification(im, d, bbx)
 
 % TODO: Spara bilder till rapporten (t.ex. projektionerna och kanske en miniboxbild)
 
+% Initialize required variables
 sNotes = struct('headPos', {}, 'type', {});
+nrElements = 1;
+startNrElements = nrElements;
+multipleHeads = 0; % 0 = no multiple heads, 1 = multiple heads
 
 % Extract the note from image using bounding box
 [rows, cols] = getBboxIdx(bbx); 
 note = im(rows,cols);
 
-% Value for padding image (easier to find note head)
+% Add padding to image (easier to find note head)
 padding = 2;
-
-% Add padding to image
 notePadded = padarray(note,[padding padding],'both');
-nrElements = 1;
-startNrElements = nrElements;
-multipleHeads = 0; % 0 = no multiple heads, 1 = multiple heads
 
 % Get positions of note heads, from padded image ( OBS! [x y] )
 heads = findNoteHeads(notePadded, d);
@@ -38,15 +37,17 @@ if(nrHeads < 1)
 end
 
 if(nrHeads >= 1)
+    
 %     figure
 %     imshow(notePadded)
 %     hold on
 %     plot(heads(:,1),heads(:,2), 'b*')
 %     hold off
+
     midOfIm = size(note,1)/2;
     isSingle = (nrHeads == 1);
 
-    % Compute actual headPos (relative to full image, not bounding box)
+    % Compute actual head positions (relative to full image, not bounding box)
     actualHeads = heads - padding;  % Compensate for added padding
     actualHeads(:,1) = actualHeads(:,1) + floor(bbx(1)); % x
     actualHeads(:,2) = actualHeads(:,2) + floor(bbx(2)); % y
@@ -79,14 +80,14 @@ end
 if(isSingle) % For single objects
     % Place the bounding box beneath the note head.
     % Might need to be modified to detect two flags
-    numberOfColumns = size(notePadded, 1);
-    numberOfRows = d(1); % 5
+    nrColumns = size(notePadded, 1);
+    nrRows = d(1); % 5
     leftColumn = 0;
     topRow = midOfIm;
     
     % Create croppedImage of element
     % Check if there is one, two or no flags
-    croppedImage = imcrop(notePadded, [leftColumn, topRow, numberOfColumns, numberOfRows]);
+    croppedImage = imcrop(notePadded, [leftColumn, topRow, nrColumns, nrRows]);
     
     % Projection
     verticalProfile = sum(croppedImage, 1); % Single head
@@ -94,53 +95,35 @@ if(isSingle) % For single objects
     
     % Check if noteheads are more than one and then write those to the
     % array. (Can be done by looking at the position of the noteheads and
-    % see if they have approximately the same x-value
+    % see if they have approximately the same x-value)
     if(multipleHeads == 1)
         for i = 1:nrHeads
             if(size(peaks,2) <= 1)
 %                 A = "One bar = 1/4"
-
-                % Increment nr of elements in struct
-                addNote(nrElements, actualHeads(i,:), 'note4');
-                nrElements = nrElements + 1;
+                addNote(actualHeads(i,:), 'note4');
                 
-                isEmpty = 0; % Not empty
             elseif(size(peaks,2) == 2)
 %                 A = "One bar = 1/8"
-
-                % Increment nr of elements in struct
-                addNote(nrElements, actualHeads(i,:), 'note8');
-                nrElements = nrElements + 1;
+                addNote(actualHeads(i,:), 'note8');
                 
-                isEmpty = 0; % Not empty
             else
 %                 A = "Multiple flags = less"
-                isEmpty = 1; % Not interesting = regarded as empty
+                % Not interesting
             end
         end
     else
         % This applies for both single and multiple heads
         if(size(peaks,2) <= 1) % No bars or flags
 %             A = "No flags = 1/4"
-
-            % Increment nr of elements in struct
-            addNote(nrElements, actualHeads, 'note4');
-            nrElements = nrElements + 1;
-
-            isEmpty = 0; % Not empty
+            addNote(actualHeads, 'note4');
 
         elseif(size(peaks,2) == 2) % One bar of flag
 %             A = "One flag = 1/8"
-
-            % Increment nr of elements in struct
-            addNote(nrElements, actualHeads, 'note8');
-            nrElements = nrElements + 1;
-
-            isEmpty = 0; % Not empty
+            addNote(actualHeads, 'note8');
 
         else % Multiple bars or flags
 %            A = "Multiple flags = less"
-            isEmpty = 1; % Not interesting = regarded as empty
+            % Not interesting
         end
     end
 else
@@ -157,12 +140,12 @@ else
     % Loop through all elements except the last one
     for i = 1:nrHeads-1
         
-        numberOfColumns = (d(1)+d(2))/2; % 7, 1d
-        numberOfRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
+        nrColumns = (d(1)+d(2))/2; % 7, 1d
+        nrRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
         
         if(isBarBottom == 1) % Head on top
             leftColumn = heads(i,1); 
-            topRow = size(notePadded,1)-numberOfRows; 
+            topRow = size(notePadded,1)-nrRows; 
         else % Head on bottom
             leftColumn = heads(i,1)+(d(1)+d(2))/2; % + 7, 1d
             topRow = 0;
@@ -170,7 +153,7 @@ else
         
         % Create croppedImage for each element
         % Check if there is one or more bars
-        croppedImage = imcrop(notePadded, [leftColumn, topRow, numberOfColumns, numberOfRows]);
+        croppedImage = imcrop(notePadded, [leftColumn, topRow, nrColumns, nrRows]);
         
         % Projection
         horisontalProfile = sum(croppedImage, 2); % Multiple heads
@@ -184,35 +167,33 @@ else
 %             A = "No bars"
         elseif(size(peaks,1) == 1 && meanVertical < (d(1)+d(2))/2) % One bar
 %             A = "One bar = 1/8"
-
-            % Increment nr of elements in struct
-            addNote(nrElements, actualHeads(i,:), 'note8');
-            nrElements = nrElements + 1;
+            addNote(actualHeads(i,:), 'note8');
             
             % Add a check to see if this is the second last element
             % If it is, then the last element should be added as well. 
             if(i == nrHeads-1)
 %                 A = "One more bar = 1/8"
-                
-                addNote(nrElements, actualHeads(i+1,:), 'note8');
-                nrElements = nrElements + 1;
+                addNote(actualHeads(i+1,:), 'note8');
             end
         else % Multiple bars
 %             A = "Multiple bars = less"
         end
     end
-    
-    % Check if at least one object in multiple object images has been added
-    if(startNrElements < nrElements)
-        isEmpty = 0; % Not Empty
-    else
-        isEmpty = 1; % Empty
-    end
 end
 
-function addNote(idx, headPos, type)
-    sNotes(idx).headPos = headPos;
-    sNotes(idx).type = type;
+% Check if at least one object in multiple object images has been added
+if(startNrElements < nrElements)
+    isEmpty = 0; % Not Empty
+else
+    isEmpty = 1; % Empty
+end
+
+% Add one note of type 'type' and note head position headPos to array with
+% structs sNotes
+function addNote(headPos, type)
+    sNotes(nrElements).headPos = headPos;
+    sNotes(nrElements).type = type;
+    nrElements = nrElements + 1;
 end
 
 end
