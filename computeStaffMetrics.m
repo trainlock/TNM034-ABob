@@ -52,22 +52,41 @@ w_unique = unique(sizes_w);
 bincounts_b = histc(sizes_b, b_unique);
 bincounts_w = histc(sizes_w, w_unique);
 
+% Cut away last half, not interesting anyways. (too large values)
+% This also avoids unwanted peaks at large values when we only have one row
+bincounts_b = bincounts_b(1:ceil(length(bincounts_b)/2));
+bincounts_w = bincounts_w(1:ceil(length(bincounts_w)/2));
+
+b_unique = b_unique(1:ceil(length(b_unique)/2));
+w_unique = w_unique(1:ceil(length(w_unique)/2));
+
 % TEST: Plot result
 % figure
 % subplot(2,1,1);
-% plot(unique(sizes_b), bincounts_b);
+% plot(b_unique, bincounts_b);
 % title('Distance between staff lines (black pixels)')
 % subplot(2,1,2);
-% plot(unique(sizes_w), bincounts_w);
+% plot(w_unique, bincounts_w);
 % title('Thickness of staff lines (white pixels)')
 
-b_thresh = (1/3)*max(bincounts_b);
-w_thresh = (1/3)*max(bincounts_w);
+% Find maximum value
+[b_max, b_idx] = max(bincounts_b);
+[w_max, w_idx] = max(bincounts_w);
+
+factor = 1/3;
+b_thresh = factor*max(b_max);
+w_thresh = factor*max(w_max);
 
 % find the distances that has more than 1/3 of the largest value for
 % occurences
 d =  b_unique(bincounts_b > b_thresh); % used for d
 n =  w_unique(bincounts_w > w_thresh); % used for n
+
+% Only save the indexes that are close to the peak
+% (OBS! Does not work well for larger images... Don't use but keep for future reference)
+% tooFar = 2;
+% d = d(abs(d - b_idx) < tooFar);
+% n = n(abs(n - w_idx) < tooFar);
 
 % Only save the largest and smallest value (the range)
 d = [min(d) max(d)];
