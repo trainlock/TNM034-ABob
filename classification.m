@@ -15,7 +15,8 @@ function [sNotes, isEmpty] = classification(im, d, bbx)
 sNotes = struct('headPos', {}, 'type', {});
 nrElements = 1;
 startNrElements = nrElements;
-multipleHeads = 0; % 0 = no multiple heads, 1 = multiple heads
+multipleHeads = 0;      % 0 = no multiple heads, 1 = multiple heads
+d_avg = (d(1)+d(2))/2;  % average line distance
 
 % Extract the note from image using bounding box
 [rows, cols] = getBboxIdx(bbx); 
@@ -140,14 +141,14 @@ else
     % Loop through all elements except the last one
     for i = 1:nrHeads-1
         
-        nrColumns = (d(1)+d(2))/2; % 7, 1d
-        nrRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
+        nrColumns = d_avg; % 7, 1d
+        nrRows = 3*d_avg; % 25, 3d+lite till+position
         
         if(isBarBottom == 1) % Head on top
             leftColumn = heads(i,1); 
             topRow = size(notePadded,1)-nrRows; 
         else % Head on bottom
-            leftColumn = heads(i,1)+(d(1)+d(2))/2; % + 7, 1d
+            leftColumn = heads(i,1)+d_avg; % + 7, 1d
             topRow = 0;
         end
         
@@ -165,7 +166,7 @@ else
         % This applies for both single and multiple heads
         if(size(peaks,1) < 1) % No bars or flags
 %             A = "No bars"
-        elseif(size(peaks,1) == 1 && meanVertical < (d(1)+d(2))/2) % One bar
+        elseif(size(peaks,1) == 1 && meanVertical < d_avg) % One bar
 %             A = "One bar = 1/8"
             addNote(actualHeads(i,:), 'note8');
             
