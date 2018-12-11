@@ -76,8 +76,9 @@ end
 %% Process each subimage 
 
 res = ''; % empty string for result
+nrSubIms = size(BW_subIms,3);
 
-for subIm = 1:size(BW_subIms,3)
+for subIm = 1:nrSubIms
     
     % SEGMENTATION
     
@@ -113,7 +114,9 @@ for subIm = 1:size(BW_subIms,3)
     res = [res, determinePitch(sNotes, lineIndices)];
     
     % At end of line, add an 'n'
-    res = [res, 'n'];
+    if(subIm < nrSubIms) 
+        res = [res, 'n'];
+    end
     
 end 
 
