@@ -28,15 +28,23 @@ multipleHeads = 0; % 0 = no multiple heads, 1 = multiple heads
 
 % Get positions of note heads, from padded image ( OBS! [x y] )
 heads = findNoteHeads(notePadded, d);
+nrHeads = size(heads,1);
 
-if(size(heads,1) >= 1)
+% If no heads found, do not do anything. 
+if(nrHeads < 1)
+%     A = "NO heads"
+    isEmpty = 1;
+    return
+end
+
+if(nrHeads >= 1)
 %     figure
 %     imshow(notePadded)
 %     hold on
 %     plot(heads(:,1),heads(:,2), 'b*')
 %     hold off
     midOfIm = size(note,1)/2;
-    isSingle = size(heads,1) == 1;
+    isSingle = (nrHeads == 1);
 
     % Compute actual headPos (relative to full image, not bounding box)
     actualHeads = heads - padding;  % Compensate for added padding
@@ -50,8 +58,8 @@ if(size(heads,1) >= 1)
 %     hold off
     
     % Check if there is multiple note heads on one staff
-    if(size(heads,1)>1)
-        for j = 2:size(heads,1)
+    if(nrHeads > 1)
+        for j = 2:nrHeads
             x = heads(j,1);
             xPrev = heads(j-1,1);
             xDiff = abs(x-xPrev);
@@ -67,11 +75,8 @@ if(size(heads,1) >= 1)
         end
     end
 end
-
-if(size(heads,1) < 1)
-%     A = "NO heads"
-    isEmpty = 1;
-elseif(isSingle) % For single objects
+    
+if(isSingle) % For single objects
     % Place the bounding box beneath the note head.
     % Might need to be modified to detect two flags
     numberOfColumns = size(notePadded, 1);
@@ -91,28 +96,20 @@ elseif(isSingle) % For single objects
     % array. (Can be done by looking at the position of the noteheads and
     % see if they have approximately the same x-value
     if(multipleHeads == 1)
-        for i = 1:size(heads, 1)
+        for i = 1:nrHeads
             if(size(peaks,2) <= 1)
 %                 A = "One bar = 1/4"
-                % Save head position if head exists in struct element
-                sNotes(nrElements).headPos = actualHeads(i,:);
-
-                % Add duration note8
-                sNotes(nrElements).type = 'note4';
 
                 % Increment nr of elements in struct
+                addNote(nrElements, actualHeads(i,:), 'note4');
                 nrElements = nrElements + 1;
                 
                 isEmpty = 0; % Not empty
             elseif(size(peaks,2) == 2)
 %                 A = "One bar = 1/8"
-                % Save head position if head exists in struct element
-                sNotes(nrElements).headPos = actualHeads(i,:);
-
-                % Add duration note8
-                sNotes(nrElements).type = 'note8';
 
                 % Increment nr of elements in struct
+                addNote(nrElements, actualHeads(i,:), 'note8');
                 nrElements = nrElements + 1;
                 
                 isEmpty = 0; % Not empty
@@ -125,32 +122,24 @@ elseif(isSingle) % For single objects
         % This applies for both single and multiple heads
         if(size(peaks,2) <= 1) % No bars or flags
 %             A = "No flags = 1/4"
-            % Save head position if head exists in struct element
-            sNotes(nrElements).headPos = actualHeads;
-
-            % Add duration note4
-            sNotes(nrElements).type = 'note4';
 
             % Increment nr of elements in struct
+            addNote(nrElements, actualHeads, 'note4');
             nrElements = nrElements + 1;
 
             isEmpty = 0; % Not empty
 
         elseif(size(peaks,2) == 2) % One bar of flag
 %             A = "One flag = 1/8"
-            % Save head position if head exists in struct element
-            sNotes(nrElements).headPos = actualHeads;
-
-            % Add duration note8
-            sNotes(nrElements).type = 'note8';
 
             % Increment nr of elements in struct
+            addNote(nrElements, actualHeads, 'note8');
             nrElements = nrElements + 1;
 
             isEmpty = 0; % Not empty
 
         else % Multiple bars or flags
-%             A = "Multiple flags = less"
+%            A = "Multiple flags = less"
             isEmpty = 1; % Not interesting = regarded as empty
         end
     end
@@ -166,19 +155,19 @@ else
     isBarBottom = barIndex > midOfIm;
 
     % Loop through all elements except the last one
-    for i = 1:size(heads, 1)-1
+    for i = 1:nrHeads-1
+        
+        numberOfColumns = (d(1)+d(2))/2; % 7, 1d
+        numberOfRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
+        
         if(isBarBottom == 1) % Head on top
-            numberOfColumns = (d(1)+d(2))/2; % 7, 1d
-            numberOfRows = 3*(d(1)+d(2))/2; % 25, 3d+lite till+position
             leftColumn = heads(i,1); 
-            topRow = size(notePadded,1)-numberOfRows;
-            
+            topRow = size(notePadded,1)-numberOfRows; 
         else % Head on bottom
-            numberOfColumns = (d(1)+d(2))/2; % 7, 1d
-            numberOfRows = 3*(d(1)+d(2))/2; % 25, 2d+lite till+position
             leftColumn = heads(i,1)+(d(1)+d(2))/2; % + 7, 1d
             topRow = 0;
         end
+        
         % Create croppedImage for each element
         % Check if there is one or more bars
         croppedImage = imcrop(notePadded, [leftColumn, topRow, numberOfColumns, numberOfRows]);
@@ -195,38 +184,35 @@ else
 %             A = "No bars"
         elseif(size(peaks,1) == 1 && meanVertical < (d(1)+d(2))/2) % One bar
 %             A = "One bar = 1/8"
-            % Save head position if head exists in struct element
-            sNotes(nrElements).headPos = actualHeads(i,:);
-
-            % Add duration note8
-            sNotes(nrElements).type = 'note8';
 
             % Increment nr of elements in struct
+            addNote(nrElements, actualHeads(i,:), 'note8');
             nrElements = nrElements + 1;
             
             % Add a check to see if this is the second last element
             % If it is, then the last element should be added as well. 
-            if(i == size(heads, 1)-1)
+            if(i == nrHeads-1)
 %                 A = "One more bar = 1/8"
-                % Save head position if head exists in struct element
-                sNotes(nrElements).headPos = actualHeads(i+1,:);
-
-                % Add duration note8
-                sNotes(nrElements).type = 'note8';
-
-                % Increment nr of elements in struct
+                
+                addNote(nrElements, actualHeads(i+1,:), 'note8');
                 nrElements = nrElements + 1;
             end
         else % Multiple bars
 %             A = "Multiple bars = less"
         end
     end
+    
     % Check if at least one object in multiple object images has been added
     if(startNrElements < nrElements)
         isEmpty = 0; % Not Empty
     else
         isEmpty = 1; % Empty
     end
+end
+
+function addNote(idx, headPos, type)
+    sNotes(idx).headPos = headPos;
+    sNotes(idx).type = type;
 end
 
 end
