@@ -1,5 +1,5 @@
 format compact
-filename = '././Images_Training/im10s.jpg';
+filename = '././Images_Training/im13s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 im = imresize(im, 2); 
@@ -19,6 +19,8 @@ im = imresize(im, 2);
 
 % Compute distances n (line width) and d (line distance)
 [d, n] = computeStaffMetrics(BW);
+
+[lIdx] = findLineIndices(BW,d);
 
 %% function [lineIndices] = findLineIndices(BW)
 %Return info about the rows containing staff lines
@@ -40,20 +42,27 @@ thresh = max(sumBW(locs))*k;
 linePeaks = sumBW(locs) > thresh;
 lineIndices = locs(linePeaks);
 
-%% Locate groupborders alternative
-% Extra checks if number of staff lines are not in groups of five
-if(rem(length(lineIndices), 5) ~= 0)
+plot(sumBW, 'b'); 
+hold on
+plot(lineIndices, 500, '*r')
+hold off
+
+%% Extra checks
+% Check if number of groups matches the number of lineindices found!
+
+dfilt = true(mean(d)*2,6);
+staffboxes = imclose(BW,dfilt ); %close groups
+sumStaff = sum(staffboxes, 2);
+staffGroupIntervals = sumStaff > max(sumStaff)*0.8;
+
+% Using the box indices to guess line indices
+% Starting points - positive derivative, end points negative, others 0
+startend = diff(staffGroupIntervals);
+a = 1:size(startend,1);
+
+% Ugly fix if number of staff lines are not matching
+if(length(lineIndices) ~= 5*size(startend,1)/2)
 %%
-    % Locate gruops
-    dfilt = true(20,6);
-    staffboxes = imclose(BW,dfilt ); %close groups
-    sumStaff = sum(staffboxes, 2);
-    staffGroupIntervals = sumStaff > max(sumStaff)*0.8;
-  
-    % Using the box indices to guess line indices
-    % Starting points - positive derivative, end points negative, others 0
-    startend = diff(staffGroupIntervals);
-    a = 1:size(startend,1);
     startend = startend.*(a'); % set value to index
     startend = startend(startend ~= 0); 
     
@@ -72,8 +81,8 @@ if(rem(length(lineIndices), 5) ~= 0)
 
     plot(sumBW, 'b'); 
     hold on
-    %plot(staffGroupIntervals*1000, 'r');  
-    %plot(SumBW2);
+%     plot(staffGroupIntervals*1000, 'r');  
+%     plot(SumBW2);
     plot(lineIndices, 500, '*r')
 end
 

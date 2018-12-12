@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% 
-function [lineIndices] = findLineIndices(BW)
+function [lineIndices] = findLineIndices(BW, d)
 %Return info about the rows containing staff lines
 % BW: binary input image 
+% d:  Distance between two lines, given as interval d = [dMin, dMax]
 % lineIndices: one row index per line
 
 %%
@@ -25,28 +26,30 @@ lineIndices = locs(linePeaks);
 % hold on
 % plot(lineIndices, thresh, '*r')
 
+%% Extra check
+% Check if number of groups matches the number of lineindices found!
 
-% Make a guess if nr of indices is not divisible by 5 
-% OBS: This method is not as accurate with its positions yet!
-if(rem(length(lineIndices), 5) ~= 0)
+dfilt = true(2*mean(d),6);
+staffboxes = imclose(BW,dfilt ); %close groups
+sumStaff = sum(staffboxes, 2);
+staffGroupIntervals = sumStaff > max(sumStaff)*0.4;
 
-    % Locate gruops
-    dfilt = true(20,6);
-    staffboxes = imclose(BW,dfilt ); %close the staff lines toghether
-    sumStaff = sum(staffboxes, 2);
-    staffGroupIntervals = sumStaff > max(sumStaff)*0.8;
+% Using the box indices to guess line indices
+% Starting points - positive derivative, end points negative, others 0
+startend = diff(staffGroupIntervals);
+a = 1:size(startend,1);
 
-    % Using the box indices to guess line indices
-    % Starting points - positive derivative, end points negative, others 0
-    startend = diff(staffGroupIntervals);
-    a = 1:size(startend,1);
-    startend = startend.*(a'); % set value to index
-    startend = startend(startend ~= 0); %keep only the indices with start and end
-    
-    
+startend = startend.*(a'); % set value to index
+startend = startend(startend ~= 0); 
+
+% Ugly fix if number of staff lines are not matching
+if(length(lineIndices) ~= 5*size(startend,1)/2)
+%%
+    % Set correct length
     lineIndices = zeros(5*size(startend,1)/2, 1);
     
-    % Set the indices eaqually spaced between the staff edges
+    % Set index values
+    % The spacing between the lines will be 1/5 of each box
     for i = 1:size(startend,1)/2
         j = 2*(i-1)+1;
         first = startend(j);

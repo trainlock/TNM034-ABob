@@ -37,11 +37,11 @@ im = imsharpen(im);
 % figure
 % imshow(BW)
 
-% Find lines and these save row indices
-lineIndices = findLineIndices(BW);
-
 % Compute distances n (line width) and d (line distance)
 [d, n] = computeStaffMetrics(BW);
+
+% Find lines and these save row indices
+lineIndices = findLineIndices(BW,d);
 
 % Create subimages containing one row each
 subIms = createSubImages(im2, lineIndices);
@@ -56,7 +56,7 @@ BW_aligned = im2bw(subIms_aligned, level);
 % figure
 % imshow(BW_aligned)
 
-lineIndices = findLineIndices(BW_aligned);
+lineIndices = findLineIndices(BW_aligned,d);
 
 % Create subimages without lines (binary)
 BW_subIms = false(size(subIms));
