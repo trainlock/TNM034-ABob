@@ -61,10 +61,16 @@ lineIndices = findLineIndices(BW_aligned);
 % Create subimages without lines (binary)
 BW_subIms = false(size(subIms));
 for i = 1:size(subIms,3)
+    
     % binarize subimage
     BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
+    
+    % For better line removal, recompute n for the subImage
+    [d_subIm, n_subIm] = computeStaffMetrics(BW_subIms(:,:,i));
+    
     % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n); 
+    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n_subIm); 
+    
     % Try to fix some possibly broken objects
     BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
     
