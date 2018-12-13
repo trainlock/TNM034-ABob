@@ -7,7 +7,7 @@ function strout = tnm034(im)
 % notes. The string must follow a pre-defined format. 
 
 format compact
-filename = './Images_Training/im3s.jpg';
+filename = './Images_Training/im1s.jpg';
 im = imread(filename);
 im = rgb2gray(im);
 
@@ -58,38 +58,33 @@ BW_aligned = im2bw(subIms_aligned, level);
 
 lineIndices = findLineIndices(BW_aligned,d);
 
-% Create subimages without lines (binary)
-BW_subIms = false(size(subIms));
-for i = 1:size(subIms,3)
-    
-    % binarize subimage
-    BW_subIms(:,:,i) = im2bw(subIms(:, :, i), level);
-    
-    % For better line removal, recompute n for the subImage
-    [d_subIm, n_subIm] = computeStaffMetrics(BW_subIms(:,:,i));
-    
-    % Remove lines
-    BW_subIms(:,:,i) = removeLines(BW_subIms(:,:,i), n_subIm); 
-    
-    % Try to fix some possibly broken objects
-    BW_subIms(:,:,i) = bwmorph(BW_subIms(:,:,i), 'close');
-    
-%     figure
-%     imshow(BW_subIms(:,:,i))
-end
-
 
 %% Process each subimage 
 
 res = ''; % empty string for result
-nrSubIms = size(BW_subIms,3);
+nrSubIms = size(subIms,3);
 
-for subIm = 1:nrSubIms
+for i = 1:nrSubIms
+    
+    % binarize subimage
+    BW_subIm = im2bw(subIms(:, :, i), level);
+    
+    % For better line removal, recompute n for the subImage
+    [d_subIm, n_subIm] = computeStaffMetrics(BW_subIm);
+    
+    % Remove lines
+    BW_subIm = removeLines(BW_subIm, n_subIm); 
+    
+    % Try to fix some possibly broken objects
+    BW_subIm = bwmorph(BW_subIm, 'close');
+    
+%     figure
+%     imshow(BW_subIms)
     
     % SEGMENTATION
     
     % find separate objects and stats
-    CC = bwconncomp(BW_subIms(:,:,subIm));
+    CC = bwconncomp(BW_subIm);
     STATS = regionprops(CC, 'Area', 'BoundingBox', 'Centroid', 'Orientation');
     
     % Get matrices for different stats
@@ -98,7 +93,7 @@ for subIm = 1:nrSubIms
 
     % Filter on area and height to remove small objects
     % OBS! Broken objects will be removed
-    [BW_subNSO,keptId] = removeSmallObj(BW_subIms(:,:,subIm),areas, boundingboxes, d);
+    [BW_subNSO,keptId] = removeSmallObj(BW_subIm,areas, boundingboxes, d);
     
     interestingBoxes = boundingboxes(keptId,:);
     
@@ -106,8 +101,8 @@ for subIm = 1:nrSubIms
     
     % Classify the found objects in the image 
     sNotes = struct('headPos', {}, 'type', {});
-    for i = 1:size(interestingBoxes)
-        bbx = interestingBoxes(i,:); 
+    for j = 1:size(interestingBoxes)
+        bbx = interestingBoxes(j,:); 
         [resultingStruct, isEmpty] = classification(BW_subNSO, d, bbx);
         if(isEmpty == 0)
             sNotes = [sNotes, resultingStruct]; % Add result to a list
@@ -116,14 +111,14 @@ for subIm = 1:nrSubIms
     end
     
     % TEST - Remember to comment before submission!!!
-    plotClassification(BW_subIms(:,:,subIm), BW_subNSO, sNotes);
+    plotClassification(BW_subIm, BW_subNSO, sNotes);
     
     % PITCH AND OUTPUT STRING 
     
     res = [res, determinePitch(sNotes, lineIndices)];
     
     % At end of line, add an 'n'
-    if(subIm < nrSubIms) 
+    if(i < nrSubIms) 
         res = [res, 'n'];
     end
     
