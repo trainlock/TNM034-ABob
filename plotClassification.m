@@ -4,10 +4,9 @@ function plotClassification(img_original, img_filtered, sNotes)
 % Yellow on 1/8 note
 % Grey areas are removed by filter
 
-
 % make filtered grey and kept white
 figure(15)
-img = uint8(img_original.*135) + uint8(img_filtered).*120;
+img = uint8(img_original.*100) + uint8(img_filtered).*155;
 imshow(img)
 
 % add notehead classification stars
