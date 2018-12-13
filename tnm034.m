@@ -80,6 +80,7 @@ for i = 1:nrSubIms
     
     % Try to fix some possibly broken objects
     BW_subIm = bwmorph(BW_subIm, 'close');
+    BW_subIm = imclose(BW_subIm, strel('line', mean(n_subIm)*3, 90));
 
 %     figure
 %     imshow(BW_subIm)
