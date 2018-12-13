@@ -6,6 +6,7 @@ function strout = tnm034(im)
 % strout: The resulting character string of the detected 
 % notes. The string must follow a pre-defined format. 
 
+% TODO: Remove this before submitting!!!
 format compact
 filename = './Images_Training/im1s.jpg';
 im = imread(filename);
@@ -14,12 +15,14 @@ im = rgb2gray(im);
 %% Struct for symbol
 clear sNotes
 clear resultingStruct
-% sNotes = struct('headPos', {}, 'type', {});
+sNotes = struct('headPos', {}, 'type', {});
 
 %% Preprocessing I: Fix camera images to scanned quality
 
-% Compensate for unsharp images
-im = imsharpen(im);
+% TODO: Handle camera images
+
+% Compensate for unsharp images (OBS!  Breaks notes in some images)
+% im = imsharpen(im);
 
 % figure
 % imshow(im)
@@ -77,9 +80,9 @@ for i = 1:nrSubIms
     
     % Try to fix some possibly broken objects
     BW_subIm = bwmorph(BW_subIm, 'close');
-    
+
 %     figure
-%     imshow(BW_subIms)
+%     imshow(BW_subIm)
     
     % SEGMENTATION
     
@@ -93,13 +96,14 @@ for i = 1:nrSubIms
 
     % Filter on area and height to remove small objects
     % OBS! Broken objects will be removed
-    [BW_subNSO,keptId] = removeSmallObj(BW_subIm,areas, boundingboxes, d);
+    [BW_subNSO,keptId] = removeSmallObj(BW_subIm, areas, boundingboxes, d);
     
+    % Save interesting objects separately
     interestingBoxes = boundingboxes(keptId,:);
     
     % CLASSIFICATION
     
-    % Classify the found objects in the image 
+    % Classify the found interesting objects in the image 
     sNotes = struct('headPos', {}, 'type', {});
     for j = 1:size(interestingBoxes)
         bbx = interestingBoxes(j,:); 
@@ -117,7 +121,7 @@ for i = 1:nrSubIms
     
     res = [res, determinePitch(sNotes, lineIndices)];
     
-    % At end of line, add an 'n'
+    % If not last image, add an 'n' at end of line
     if(i < nrSubIms) 
         res = [res, 'n'];
     end
