@@ -9,19 +9,22 @@ function [heads] = findNoteHeads(BW, d)
 % Average distance between lines (avg height of note head)
 d_avg = (d(2)+d(1))/2; 
 
-% first remove any thick horizontal beams using opening
-IM = imopen(BW,strel('rectangle',[floor(d_avg/4),floor(2*d_avg)]));
-IM = BW-IM; % Remove the beams.
+% Try to separate connected objects
+BW = bwmorph(BW, 'open');
 
 % remove thick vertical lines using opening
-IM1 = imopen(BW,strel('rectangle',[floor(2*d_avg), floor(d_avg/2.5)]));
-IM = IM-IM1; % Remove found lines
+IM1 = imopen(BW,strel('rectangle',[floor(2*d_avg), floor(d_avg/2)]));
+IM = BW-IM1; % Remove the beams.
 
-% Clean up a bit
-IM = bwmorph(IM, 'open');
+% remove any thick horizontal beams using opening
+IM2 = imopen(IM,strel('rectangle',[floor(d_avg/3),floor(2*d_avg)]));
+IM = IM-IM2; % Remove found lines
+
+% Clean up a bit by using thinning to try to destroy thick not round objects
+IM = bwmorph(IM, 'thin', 2);
 
 % Opening with ciruclar (disk) structuring element to separate the heads
-IM = imopen(IM,strel('disk',round(d_avg/2))); 
+IM = imopen(IM,strel('disk',floor(d_avg/3))); 
 L = bwlabel(IM);
 s = regionprops(L,'centroid');
 heads = cat(1, s.Centroid); % The result!
