@@ -31,26 +31,29 @@ lineIndices = locs(linePeaks);
 
 dfilt = true(2*mean(d),6);
 staffboxes = imclose(BW,dfilt ); %close groups
-sumStaff = sum(staffboxes, 2);
-staffGroupIntervals = sumStaff > max(sumStaff)*0.4;
+sumStaff = sum(staffboxes( :, 1:ceil( size(staffboxes,2)/2) ),2);
+staffGroupIntervals = sumStaff > max(sumStaff)*0.7;
 
 % Using the box indices to guess line indices
 % Starting points - positive derivative, end points negative, others 0
 startend = diff(staffGroupIntervals);
-a = 1:size(startend,1);
 
+a = 1:size(startend,1);
 startend = startend.*(a'); % set value to index
 startend = startend(startend ~= 0); 
 
+nrGr = floor(size(startend,1)/2);
+
 % Ugly fix if number of staff lines are not matching
-if(length(lineIndices) ~= 5*size(startend,1)/2)
+if(length(lineIndices) ~= 5*nrGr)
 %%
     % Set correct length
-    lineIndices = zeros(5*size(startend,1)/2, 1);
+    lineIndices = zeros(5*nrGr, 1);
     
     % Set index values
     % The spacing between the lines will be 1/5 of each box
-    for i = 1:size(startend,1)/2
+    for i = 1:nrGr
+        
         j = 2*(i-1)+1;
         first = startend(j);
         last = -startend(j+1);
@@ -58,6 +61,7 @@ if(length(lineIndices) ~= 5*size(startend,1)/2)
         
         li = 5*(i-1)+1;
         lineIndices(li:li+4) = first:spacing:last;
+       
     end
 end
 
