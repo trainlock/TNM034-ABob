@@ -32,7 +32,7 @@ lineIndices = locs(linePeaks);
 dfilt = true(2*mean(d),6);
 staffboxes = imclose(BW,dfilt ); %close groups
 sumStaff = sum(staffboxes( :, 1:ceil( size(staffboxes,2)/2) ),2);
-staffGroupIntervals = sumStaff > max(sumStaff)*0.7;
+staffGroupIntervals = sumStaff > max(sumStaff)*0.8;
 
 % Using the box indices to guess line indices
 % Starting points - positive derivative, end points negative, others 0
