@@ -24,7 +24,7 @@ IM = IM-IM2; % Remove found lines
 IM = bwmorph(IM, 'thin', 2);
 
 % Opening with ciruclar (disk) structuring element to separate the heads
-IM = imopen(IM,strel('disk',floor(d_avg/3))); 
+IM = imopen(IM,strel('disk',floor(d_avg/3.5))); 
 L = bwlabel(IM);
 s = regionprops(L,'centroid');
 heads = cat(1, s.Centroid); % The result!
