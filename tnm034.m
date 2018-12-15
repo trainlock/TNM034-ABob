@@ -6,10 +6,6 @@ function strout = tnm034(im)
 % strout: The resulting character string of the detected 
 % notes. The string must follow a pre-defined format. 
 
-% TODO: Remove this before submitting!!!
-format compact
-filename = './Images_Training/im1s.jpg';
-im = imread(filename);
 im = rgb2gray(im);
 
 %% Struct for symbol
@@ -116,7 +112,7 @@ for i = 1:nrSubIms
     end
     
     % TEST - Remember to comment before submission!!!
-    plotClassification(BW_subIm, BW_subNSO, sNotes);
+    % plotClassification(BW_subIm, BW_subNSO, sNotes);
     
     % PITCH AND OUTPUT STRING 
     
