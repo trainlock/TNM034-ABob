@@ -10,11 +10,11 @@ function [heads] = findNoteHeads(BW, d)
 d_avg = (d(2)+d(1))/2; 
 
 % Try to separate connected objects
-BW = bwmorph(BW, 'open');
+IM = bwmorph(BW, 'open');
 
 % remove thick vertical lines using opening
-IM1 = imopen(BW,strel('rectangle',[floor(2*d_avg), floor(d_avg/2)]));
-IM = BW-IM1; % Remove the beams.
+IM1 = imopen(IM,strel('rectangle',[floor(2*d_avg), floor(d_avg/2.5)]));
+IM = IM-IM1; % Remove the beams.
 
 % remove any thick horizontal beams using opening
 IM2 = imopen(IM,strel('rectangle',[floor(d_avg/3),floor(2*d_avg)]));
