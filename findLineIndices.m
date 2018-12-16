@@ -57,10 +57,12 @@ if(length(lineIndices) ~= 5*nrGr)
         j = 2*(i-1)+1;
         first = startend(j);
         last = -startend(j+1);
-        spacing = floor((last-first)/4);
+        spacing = ((last-first)/4);
         
-        li = 5*(i-1)+1;
-        lineIndices(li:li+4) = first:spacing:last;
+        if(spacing > 0)
+            li = 5*(i-1)+1;
+            lineIndices(li:li+4) = round(first:spacing:last);
+        end
        
     end
 end
