@@ -20,7 +20,7 @@ if(nrGroups > 0)
     lineIndices = lineIndices + padding;
     
     rowCounter = 3;
-    subImages = uint8(zeros(padding*2+1, size(im,2), nrGroups));
+    subImages = zeros(padding*2+1, size(im,2), nrGroups);
     for i = 1:nrGroups 
         % cut out and save one group, with padding
         row = lineIndices(rowCounter);

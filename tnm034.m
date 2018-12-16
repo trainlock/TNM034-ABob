@@ -6,10 +6,6 @@ function strout = tnm034(im)
 % strout: The resulting character string of the detected 
 % notes. The string must follow a pre-defined format. 
 
-% TODO: Remove this before submitting!!!
-format compact
-filename = './Images_Training/im1s.jpg';
-im = imread(filename);
 im = rgb2gray(im);
 
 %% Struct for symbol
@@ -49,11 +45,9 @@ lineIndices = findLineIndices(BW,d);
 % Create subimages containing one row each
 subIms = createSubImages(im2, lineIndices);
 
-% Compute level to use for thresholding
-level = graythresh(subIms); 
-
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
+level = graythresh(subIms_aligned); 
 BW_aligned = im2bw(subIms_aligned, level);
 
 % figure
@@ -116,7 +110,7 @@ for i = 1:nrSubIms
     end
     
     % TEST - Remember to comment before submission!!!
-    plotClassification(BW_subIm, BW_subNSO, sNotes);
+    % plotClassification(BW_subIm, BW_subNSO, sNotes);
     
     % PITCH AND OUTPUT STRING 
     
