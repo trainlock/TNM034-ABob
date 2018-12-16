@@ -45,11 +45,9 @@ lineIndices = findLineIndices(BW,d);
 % Create subimages containing one row each
 subIms = createSubImages(im2, lineIndices);
 
-% Compute level to use for thresholding
-level = graythresh(subIms); 
-
 % Put all sub images in one image and compute new line indices
 subIms_aligned = reshape(subIms, size(subIms,1), [], 1);
+level = graythresh(subIms_aligned); 
 BW_aligned = im2bw(subIms_aligned, level);
 
 % figure
